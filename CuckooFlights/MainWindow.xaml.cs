@@ -72,8 +72,8 @@ namespace CuckooFlights
 						mul *= Math.Cos(x[i] / Math.Sqrt(i + 1));
 					return x.Sum(t => t * t / 4000) - mul + 1;
 				},
-				BoundLower = -600,
-				BoundUpper = 600,
+				BoundLower = -5,
+				BoundUpper = 5,
 				Dimensions = 50
 			});
 		}
@@ -113,14 +113,104 @@ namespace CuckooFlights
 		{
 			int width = Convert.ToInt32(FunctionImage.Height);
 			int height = Convert.ToInt32(FunctionImage.Width);
-			var pixels = new byte[height, width, 4];
+			(double min, double max) = GetFunctionMinMax(function, width, height);
+			
+			double stepWidth = Math.Abs(function.BoundUpper - function.BoundLower) / width;
+			double stepHeight = Math.Abs(function.BoundUpper - function.BoundLower) / height;
+			// var pixels = new byte[height, width, 4];
+			var pixels1d = new byte[height * width * 4];
+			int pixelsIndex = 0;
+			for (double x = function.BoundLower; x < function.BoundUpper; x += stepWidth)
+			{
+				for (double y = function.BoundLower; y < function.BoundUpper; y += stepHeight)
+				{
+					Color color = GetColor(function, max, min, x, y);
+					pixels1d[pixelsIndex++] = color.R;
+					pixels1d[pixelsIndex++] = color.G;
+					pixels1d[pixelsIndex++] = color.B;
+					pixels1d[pixelsIndex++] = color.A;
+				}
+			}
+			
+			var bitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
+			var rect = new Int32Rect(0, 0, width, height);
+			int stride = 4 * width;
+			bitmap.WritePixels(rect, pixels1d, stride, 0);
+			FunctionImage.Source = bitmap;
 		}
 
-		private Color GetColor(Function function, double max, double min, double x, double y)
+		private static Color GetColor(Function function, double max, double min, double x, double y)
 		{
 			double value = function.Expression(new List<double> {x, y});
-			
+
+			double dist = Math.Abs(max - min);
+			double colorDist = dist / 4;
+			double r = max;
+			double gb = min + colorDist;
+			double g = min + 2 * colorDist;
+			double rg = min + 3 * colorDist;
+			double b = min;
+
+			// G: 0 to 255
+			if (b <= value && value < gb)
+			{
+				double up = value - b;
+				double scale = up / colorDist;
+				return new Color {A = byte.MaxValue, R = 0, G = Convert.ToByte(scale * 255), B = 255};
+			}
+
+			// B: 255 to 0
+			if (gb <= value && value < g)
+			{
+				double up = value - gb;
+				double scale = up / colorDist;
+				return new Color {A = byte.MaxValue, R = 0, G = 255, B = Convert.ToByte((1 - scale) * 255)};
+			}
+
+			// R: 0 to 255
+			if (g <= value && value < rg)
+			{
+				double up = value - g;
+				double scale = up / colorDist;
+				return new Color {A = byte.MaxValue, R = Convert.ToByte(scale * 255), G = 0, B = 0};
+			}
+
+			// G: 255 to 0
+			if (rg <= value && value <= r)
+			{
+				double up = value - rg;
+				double scale = up / colorDist;
+				return new Color {A = byte.MaxValue, R = 255, G = Convert.ToByte((1 - scale) * 255), B = 0};
+			}
+
 			return Colors.White;
+		}
+
+		private static Tuple<double, double> GetFunctionMinMax(Function function, int width, int height)
+		{
+			double min = function.Expression(new List<double> {function.BoundLower, function.BoundLower});
+			double max = min;
+
+			double stepWidth = Math.Abs(function.BoundUpper - function.BoundLower) / width;
+			double stepHeight = Math.Abs(function.BoundUpper - function.BoundLower) / height;
+			for (double x = function.BoundLower; x <= function.BoundUpper; x += stepWidth)
+			{
+				for (double y = function.BoundLower; y <= function.BoundUpper; y += stepHeight)
+				{
+					double value = function.Expression(new List<double> {x, y});
+					if (value < min)
+					{
+						min = value;
+					}
+
+					if (max < value)
+					{
+						max = value;
+					}
+				}
+			}
+			
+			return new Tuple<double, double>(min, max);
 		}
 	}
 }
