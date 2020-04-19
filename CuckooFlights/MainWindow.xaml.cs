@@ -111,27 +111,31 @@ namespace CuckooFlights
 
 		private void DrawFunction(Function function)
 		{
-			int width = Convert.ToInt32(FunctionImage.Height);
-			int height = Convert.ToInt32(FunctionImage.Width);
+			int height = Convert.ToInt32(Canvas.ActualHeight);
+			int width = Convert.ToInt32(Canvas.ActualWidth);
+			height = Math.Min(height, width);
+			width = height;
 			(double min, double max) = GetFunctionMinMax(function, width, height);
-			
-			double stepWidth = Math.Abs(function.BoundUpper - function.BoundLower) / width;
-			double stepHeight = Math.Abs(function.BoundUpper - function.BoundLower) / height;
+
+			double stepWidth = Math.Abs(function.BoundUpper - function.BoundLower) / (width - 1);
+			double stepHeight = Math.Abs(function.BoundUpper - function.BoundLower) / (height - 1);
 			// var pixels = new byte[height, width, 4];
 			var pixels1d = new byte[height * width * 4];
 			int pixelsIndex = 0;
-			for (double x = function.BoundLower; x < function.BoundUpper; x += stepWidth)
+			for (double x = function.BoundLower; x <= function.BoundUpper; x += stepWidth)
 			{
-				for (double y = function.BoundLower; y < function.BoundUpper; y += stepHeight)
+				for (double y = function.BoundLower; y <= function.BoundUpper; y += stepHeight)
 				{
 					Color color = GetColor(function, max, min, x, y);
-					pixels1d[pixelsIndex++] = color.R;
-					pixels1d[pixelsIndex++] = color.G;
 					pixels1d[pixelsIndex++] = color.B;
+					pixels1d[pixelsIndex++] = color.G;
+					pixels1d[pixelsIndex++] = color.R;
 					pixels1d[pixelsIndex++] = color.A;
 				}
 			}
-			
+
+			FunctionImage.Height = height;
+			FunctionImage.Width = width;
 			var bitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
 			var rect = new Int32Rect(0, 0, width, height);
 			int stride = 4 * width;
@@ -151,12 +155,20 @@ namespace CuckooFlights
 			double rg = min + 3 * colorDist;
 			double b = min;
 
-			// G: 0 to 255
-			if (b <= value && value < gb)
+			// G: 255 to 0
+			if (rg <= value && value <= r)
 			{
-				double up = value - b;
+				double up = value - rg;
 				double scale = up / colorDist;
-				return new Color {A = byte.MaxValue, R = 0, G = Convert.ToByte(scale * 255), B = 255};
+				return new Color {A = byte.MaxValue, R = 255, G = Convert.ToByte((1 - scale) * 255), B = 0};
+			}
+
+			// R: 0 to 255
+			if (g <= value && value < rg)
+			{
+				double up = value - g;
+				double scale = up / colorDist;
+				return new Color {A = byte.MaxValue, R = Convert.ToByte(scale * 255), G = 255, B = 0};
 			}
 
 			// B: 255 to 0
@@ -167,20 +179,12 @@ namespace CuckooFlights
 				return new Color {A = byte.MaxValue, R = 0, G = 255, B = Convert.ToByte((1 - scale) * 255)};
 			}
 
-			// R: 0 to 255
-			if (g <= value && value < rg)
+			// G: 0 to 255
+			if (b <= value && value < gb)
 			{
-				double up = value - g;
+				double up = value - b;
 				double scale = up / colorDist;
-				return new Color {A = byte.MaxValue, R = Convert.ToByte(scale * 255), G = 0, B = 0};
-			}
-
-			// G: 255 to 0
-			if (rg <= value && value <= r)
-			{
-				double up = value - rg;
-				double scale = up / colorDist;
-				return new Color {A = byte.MaxValue, R = 255, G = Convert.ToByte((1 - scale) * 255), B = 0};
+				return new Color {A = byte.MaxValue, R = 0, G = Convert.ToByte(scale * 255), B = 255};
 			}
 
 			return Colors.White;
@@ -209,7 +213,7 @@ namespace CuckooFlights
 					}
 				}
 			}
-			
+
 			return new Tuple<double, double>(min, max);
 		}
 	}
