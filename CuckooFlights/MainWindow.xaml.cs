@@ -111,10 +111,10 @@ namespace CuckooFlights
 
 		private void DrawFunction(Function function)
 		{
-			int height = Convert.ToInt32(Canvas.ActualHeight);
-			int width = Convert.ToInt32(Canvas.ActualWidth);
-			height = Math.Min(height, width);
-			width = height;
+			int canvasHeight = Convert.ToInt32(Canvas.ActualHeight);
+			int canvasWidth = Convert.ToInt32(Canvas.ActualWidth);
+			int height = Math.Min(canvasHeight, canvasWidth);
+			int width = height;
 			(double min, double max) = GetFunctionMinMax(function, width, height);
 
 			double stepWidth = Math.Abs(function.BoundUpper - function.BoundLower) / (width - 1);
@@ -141,6 +141,11 @@ namespace CuckooFlights
 			int stride = 4 * width;
 			bitmap.WritePixels(rect, pixels1d, stride, 0);
 			FunctionImage.Source = bitmap;
+
+			FunctionImage.Margin = new Thickness((canvasWidth - width) * .5,
+				(canvasHeight - height) * .5,
+				FunctionImage.Margin.Right,
+				FunctionImage.Margin.Bottom);
 		}
 
 		private static Color GetColor(Function function, double max, double min, double x, double y)
@@ -195,8 +200,8 @@ namespace CuckooFlights
 			double min = function.Expression(new List<double> {function.BoundLower, function.BoundLower});
 			double max = min;
 
-			double stepWidth = Math.Abs(function.BoundUpper - function.BoundLower) / width;
-			double stepHeight = Math.Abs(function.BoundUpper - function.BoundLower) / height;
+			double stepWidth = Math.Abs(function.BoundUpper - function.BoundLower) / (width - 1);
+			double stepHeight = Math.Abs(function.BoundUpper - function.BoundLower) / (height - 1);
 			for (double x = function.BoundLower; x <= function.BoundUpper; x += stepWidth)
 			{
 				for (double y = function.BoundLower; y <= function.BoundUpper; y += stepHeight)
