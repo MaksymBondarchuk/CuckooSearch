@@ -13,9 +13,9 @@ namespace CuckooSearch
 
 		public double Dimensions { get; set; }
 
-		public double LambdaMin { get; set; } = 1;
+		public double LambdaMin { get; set; } = 3;
 
-		public double LambdaMax { get; set; } = 3;
+		public double LambdaMax { get; set; } = 30;
 
 		public double AlphaMin { get; set; } = 1;
 

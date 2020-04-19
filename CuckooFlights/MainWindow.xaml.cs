@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 using CuckooSearch;
 
 namespace CuckooFlights
@@ -16,6 +18,10 @@ namespace CuckooFlights
 	{
 		#region DI
 
+		private Function _function;
+		
+		private readonly SolidColorBrush _brushBlack = Brushes.Black;
+		
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -27,20 +33,19 @@ namespace CuckooFlights
 
 		private void SphereRb_Checked(object sender, RoutedEventArgs e)
 		{
-			DrawFunction(new Function
+			_function = new Function
 			{
 				Expression = x => { return x.Sum(t => t * t); },
 				BoundLower = -100,
 				BoundUpper = 100,
-				Dimensions = 2,
-				LambdaMax = 3,
-				LambdaMin = 0.1,
-			});
+				Dimensions = 2
+			};
+			DrawFunction(_function);
 		}
 
 		private void AckleyRb_Checked(object sender, RoutedEventArgs e)
 		{
-			DrawFunction(new Function
+			_function = new Function
 			{
 				Expression = x =>
 				{
@@ -51,12 +56,13 @@ namespace CuckooFlights
 				BoundLower = -32.768,
 				BoundUpper = 32.768,
 				Dimensions = 2
-			});
+			};
+			DrawFunction(_function);
 		}
 
 		private void GriewankRb_Checked(object sender, RoutedEventArgs e)
 		{
-			DrawFunction(new Function
+			_function = new Function
 			{
 				Expression = x =>
 				{
@@ -68,24 +74,26 @@ namespace CuckooFlights
 				BoundLower = -5,
 				BoundUpper = 5,
 				Dimensions = 2
-			});
+			};
+			DrawFunction(_function);
 		}
 
 		private void RastriginRb_Checked(object sender, RoutedEventArgs e)
 		{
-			DrawFunction(new Function
+			_function = new Function
 			{
 				Expression = x => { return 10 * x.Count + x.Sum(t => t * t - 10 * Math.Cos(2 * Math.PI * t)); },
 				BoundLower = -5,
 				BoundUpper = 5,
 				Dimensions = 2,
 				IterationsNumber = 150000
-			});
+			};
+			DrawFunction(_function);
 		}
 
 		private void RosenbrockRb_Checked(object sender, RoutedEventArgs e)
 		{
-			DrawFunction(new Function
+			_function = new Function
 			{
 				Expression = x =>
 				{
@@ -97,10 +105,13 @@ namespace CuckooFlights
 				BoundLower = -2.048,
 				BoundUpper = 2.048,
 				Dimensions = 2
-			});
+			};
+			DrawFunction(_function);
 		}
 
 		#endregion
+
+		#region Colors
 
 		private void DrawFunction(Function function)
 		{
@@ -135,10 +146,12 @@ namespace CuckooFlights
 			bitmap.WritePixels(rect, pixels1d, stride, 0);
 			FunctionImage.Source = bitmap;
 
-			FunctionImage.Margin = new Thickness((canvasWidth - width) * .5,
+			FunctionImage.Margin = new Thickness((Window.ActualWidth - Canvas.Margin.Left - width) * .5,
 				(canvasHeight - height) * .5,
 				FunctionImage.Margin.Right,
 				FunctionImage.Margin.Bottom);
+			
+			Panel.SetZIndex(FunctionImage, 1);
 		}
 
 		private static Color GetColor(Function function, double max, double min, double x, double y)
@@ -261,6 +274,52 @@ namespace CuckooFlights
 			}
 
 			return new Tuple<double, double>(min, max);
+		}
+
+		#endregion
+
+		private async void RunButton_Click(object sender, RoutedEventArgs e)
+		{
+			var algorithm = new Algorithm();
+			algorithm.Initialize(50, 1, _function);
+
+			Bird cuckoo = algorithm.Population.Cuckoos.First();
+			double prevX = cuckoo.X[0];
+			double prevY = cuckoo.X[1];
+			for (int iter = 1; iter <= _function.IterationsNumber; iter++)
+			{
+				algorithm.Iteration(_function);
+				
+				double x = cuckoo.X[0];
+				double y = cuckoo.X[1];
+				Canvas.Children.Add(new Line
+				{
+					X1 = TrabsformX(_function, prevX),
+					X2 = TrabsformX(_function, x),
+					Y1 = TrabsformY(_function, prevY),
+					Y2 = TrabsformY(_function, y),
+					StrokeThickness = 1,
+					Stroke = _brushBlack
+				});
+				Panel.SetZIndex(Canvas.Children[^1], 2);
+				prevX = x;
+				prevY = y;
+				await Task.Delay(10);
+			}
+		}
+
+		private double TrabsformX(Function function, double x)
+		{
+			double marginLeft = x - function.BoundLower;
+			double scale = marginLeft / Math.Abs(function.BoundUpper - function.BoundLower);
+			return FunctionImage.Margin.Left + scale * FunctionImage.ActualWidth;
+		}
+
+		private double TrabsformY(Function function, double y)
+		{
+			double marginTop = y - function.BoundLower;
+			double scale = marginTop / Math.Abs(function.BoundUpper - function.BoundLower);
+			return FunctionImage.Margin.Top + scale * FunctionImage.ActualWidth;
 		}
 	}
 }
