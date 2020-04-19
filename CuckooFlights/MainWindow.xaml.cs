@@ -1,17 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using CuckooSearch;
 
 namespace CuckooFlights
@@ -130,7 +123,7 @@ namespace CuckooFlights
 					pixels1d[pixelsIndex++] = color.B;
 					pixels1d[pixelsIndex++] = color.G;
 					pixels1d[pixelsIndex++] = color.R;
-					pixels1d[pixelsIndex++] = color.A;
+					pixels1d[pixelsIndex++] = GetOpacity(function, x, y);
 				}
 			}
 
@@ -195,6 +188,59 @@ namespace CuckooFlights
 			return Colors.White;
 		}
 
+		private byte GetOpacity(Function function, double x, double y)
+		{
+			// return byte.MaxValue;
+			
+			double opacityMargin = Math.Abs(function.BoundUpper - function.BoundLower) * .02;
+			double left = function.BoundLower + opacityMargin;
+			double right = function.BoundUpper - opacityMargin;
+			double top = left;
+			double bottom = right;
+
+			byte xOpacity = byte.MaxValue;
+			byte yOpacity = byte.MaxValue;
+			
+			// L
+			if (x <= left)
+			{
+				if (Math.Abs(x - y) < 0.1)
+				{
+					Debugger.Break();
+				}
+				
+				double dist = x - function.BoundLower;
+				double scale = dist / opacityMargin;
+				xOpacity = Convert.ToByte(scale * 255);
+			}
+			
+			// R
+			if (right <= x)
+			{
+				double dist = function.BoundUpper - x;
+				double scale = dist / opacityMargin;
+				xOpacity = Convert.ToByte(scale * 255);
+			}
+
+			// L
+			if (y <= top)
+			{
+				double dist = y - function.BoundLower;
+				double scale = dist / opacityMargin;
+				yOpacity = Convert.ToByte(scale * 255);
+			}
+
+			// R
+			if (bottom <= y)
+			{
+				double dist = function.BoundUpper - y;
+				double scale = dist / opacityMargin;
+				yOpacity = Convert.ToByte(scale * 255);
+			}
+			
+			return Math.Min(xOpacity, yOpacity);
+		}
+		
 		private static Tuple<double, double> GetFunctionMinMax(Function function, int width, int height)
 		{
 			double min = function.Expression(new List<double> {function.BoundLower, function.BoundLower});
