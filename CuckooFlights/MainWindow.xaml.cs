@@ -238,7 +238,7 @@ namespace CuckooFlights
 			}
 
 			// G: 0 to 255
-			if (b <= value && value < gb)
+			if (/*b <= value && */value < gb)
 			{
 				double up = value - b;
 				double scale = up / colorDist;
