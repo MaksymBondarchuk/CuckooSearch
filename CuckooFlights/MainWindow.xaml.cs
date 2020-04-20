@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,10 +19,15 @@ namespace CuckooFlights
 	{
 		#region DI
 
+		private const int NestsNumber = 15;
+		private List<Ellipse> Nests = new List<Ellipse>();
+		
 		private Function _function;
-		
+		private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+
 		private readonly SolidColorBrush _brushBlack = Brushes.Black;
-		
+		private readonly SolidColorBrush _brushWhite = Brushes.White;
+
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -115,6 +121,8 @@ namespace CuckooFlights
 
 		private void DrawFunction(Function function)
 		{
+			Reset();
+			
 			int canvasHeight = Convert.ToInt32(Canvas.ActualHeight);
 			int canvasWidth = Convert.ToInt32(Canvas.ActualWidth);
 			int height = Math.Min(canvasHeight, canvasWidth);
@@ -150,8 +158,9 @@ namespace CuckooFlights
 				(canvasHeight - height) * .5,
 				FunctionImage.Margin.Right,
 				FunctionImage.Margin.Bottom);
-			
+
 			Panel.SetZIndex(FunctionImage, 1);
+			RunButton.IsEnabled = true;
 		}
 
 		private static Color GetColor(Function function, double max, double min, double x, double y)
@@ -278,18 +287,52 @@ namespace CuckooFlights
 
 		#endregion
 
+		#region Run
+
 		private async void RunButton_Click(object sender, RoutedEventArgs e)
 		{
+			Reset();
+
+			_cancellationTokenSource = new CancellationTokenSource();
+			await RunAlgorithm(_cancellationTokenSource.Token);
+		}
+
+		private async Task RunAlgorithm(CancellationToken cancellationToken)
+		{
 			var algorithm = new Algorithm();
-			algorithm.Initialize(50, 1, _function);
+			algorithm.Initialize(NestsNumber, 1, _function);
+
+			for (int i = 0; i < NestsNumber; i++)
+			{
+				Bird host = algorithm.Population.Hosts[i];
+				var nest = new Ellipse
+				{
+					Height = 5,
+					Width = 5,
+					StrokeThickness = 1,
+					Stroke = _brushWhite,
+					// Margin = new Thickness(TrabsformX(_function, host.X[0]) - 2, TrabsformY(_function, host.X[1]) - 2, 0, 0)
+					// Fill = _brushWhite
+				};
+				Nests.Add(nest);
+				nest.SetValue(Canvas.LeftProperty, TrabsformX(_function, host.X[0]) - 2);
+				nest.SetValue(Canvas.TopProperty, TrabsformY(_function, host.X[1]) - 2);
+				Canvas.Children.Add(nest);
+				Panel.SetZIndex(Canvas.Children[^1], 3);
+			}
 
 			Bird cuckoo = algorithm.Population.Cuckoos.First();
 			double prevX = cuckoo.X[0];
 			double prevY = cuckoo.X[1];
 			for (int iter = 1; iter <= _function.IterationsNumber; iter++)
 			{
+				if (cancellationToken.IsCancellationRequested)
+				{
+					return;
+				}
+
 				algorithm.Iteration(_function);
-				
+
 				double x = cuckoo.X[0];
 				double y = cuckoo.X[1];
 				Canvas.Children.Add(new Line
@@ -302,6 +345,15 @@ namespace CuckooFlights
 					Stroke = _brushBlack
 				});
 				Panel.SetZIndex(Canvas.Children[^1], 2);
+
+				for (int i = 0; i < NestsNumber; i++)
+				{
+					Bird host = algorithm.Population.Hosts[i];
+					Ellipse nest = Nests[i];
+					nest.SetValue(Canvas.LeftProperty, TrabsformX(_function, host.X[0]) - 2);
+					nest.SetValue(Canvas.TopProperty, TrabsformY(_function, host.X[1]) - 2);
+				}
+				
 				prevX = x;
 				prevY = y;
 				await Task.Delay(10);
@@ -320,6 +372,15 @@ namespace CuckooFlights
 			double marginTop = y - function.BoundLower;
 			double scale = marginTop / Math.Abs(function.BoundUpper - function.BoundLower);
 			return FunctionImage.Margin.Top + scale * FunctionImage.ActualWidth;
+		}
+
+		#endregion
+
+		private void Reset()
+		{
+			_cancellationTokenSource.Cancel();
+			Nests.Clear();
+			Canvas.Children.RemoveRange(1, Canvas.Children.Count - 1);
 		}
 	}
 }

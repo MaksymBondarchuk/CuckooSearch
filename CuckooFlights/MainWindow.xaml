@@ -13,7 +13,7 @@
             <RadioButton x:Name="RastriginRb" Content="Rastrigin" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" Checked="RastriginRb_Checked"/>
             <RadioButton x:Name="RosenbrockRb" Content="Rosenbrock" HorizontalAlignment="Left" Margin="10,90,0,0" VerticalAlignment="Top" Checked="RosenbrockRb_Checked"/>
             <RadioButton x:Name="AckleyRb" Content="Ackley" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Checked="AckleyRb_Checked"/>
-            <Button x:Name="RunButton" Content="Run" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Click="RunButton_Click"/>
+            <Button x:Name="RunButton" Content="Run" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Click="RunButton_Click" IsEnabled="False"/>
         </Grid>
         <Canvas x:Name="Canvas" Margin="127,0,0,0">
             <Image x:Name="FunctionImage" Stretch="None"/>
