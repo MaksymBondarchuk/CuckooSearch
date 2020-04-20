@@ -145,10 +145,11 @@ namespace CuckooFlights
 			int pixelsIndex = 0;
 			for (int w = 0; w < width; w++)
 			{
+				double x = TansformPixelToX(w, width);
 				for (int h = 0; h < height; h++)
 				{
-					double x = TansformPixelToX(w, width);
 					double y = TansformPixelToY(h, height);
+					
 					Color color = GetColor(function, max, min, x, y);
 					pixels1d[pixelsIndex++] = color.B;
 					pixels1d[pixelsIndex++] = color.G;
@@ -156,23 +157,6 @@ namespace CuckooFlights
 					pixels1d[pixelsIndex++] = GetOpacity(function, x, y);
 				}
 			}
-			
-			// for (double x = function.BoundLower; x <= function.BoundUpper; x += stepWidth)
-			// {
-			// 	for (double y = function.BoundLower; y <= function.BoundUpper; y += stepHeight)
-			// 	{
-			// 		if (0 <= x && x <= 0.5 && 0 <= y && y <= 0.5)
-			// 		{
-			// 			// Debugger.Break();
-			// 		}
-			//
-			// 		Color color = GetColor(function, max, min, x, y);
-			// 		pixels1d[pixelsIndex++] = color.B;
-			// 		pixels1d[pixelsIndex++] = color.G;
-			// 		pixels1d[pixelsIndex++] = color.R;
-			// 		pixels1d[pixelsIndex++] = GetOpacity(function, x, y);
-			// 	}
-			// }
 
 			FunctionImage.Height = height;
 			FunctionImage.Width = width;
