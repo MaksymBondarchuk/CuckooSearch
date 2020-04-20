@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,6 +27,7 @@ namespace CuckooFlights
 
 		private readonly SolidColorBrush _brushBlack = Brushes.Black;
 		private readonly SolidColorBrush _brushWhite = Brushes.White;
+		private const int LabelWidth = 50;
 
 		public MainWindow()
 		{
@@ -131,15 +131,12 @@ namespace CuckooFlights
 			{
 				height--;
 			}
-			Console.WriteLine($"height={height}");
+
 			int width = height;
 			(double min, double max) = GetFunctionMinMax(function, width, height);
 
 			double stepWidth = Math.Abs(function.BoundUpper - function.BoundLower) / (width - 1);
-			Console.WriteLine($"stepWidth={stepWidth}");
 			double stepHeight = stepWidth; //Math.Abs(function.BoundUpper - function.BoundLower) / (height - 1);
-			Console.WriteLine($"stepHeight={stepHeight}");
-			Console.WriteLine();
 			// var pixels = new byte[height, width, 4];
 			var pixels1d = new byte[height * width * 4];
 			int pixelsIndex = 0;
@@ -149,7 +146,7 @@ namespace CuckooFlights
 				for (int h = 0; h < height; h++)
 				{
 					double y = TansformPixelToY(h, height);
-					
+
 					Color color = GetColor(function, max, min, x, y);
 					pixels1d[pixelsIndex++] = color.B;
 					pixels1d[pixelsIndex++] = color.G;
@@ -174,13 +171,14 @@ namespace CuckooFlights
 
 			LabelUpperY.Content = _function.BoundUpper;
 			LabelLowerY.Content = _function.BoundLower;
-			double left = FunctionImage.Margin.Left + Canvas.Margin.Left - LabelUpperY.ActualWidth;
-			//double left = Window.ActualWidth - Canvas.Margin.Left - FunctionImage.Margin.Left - LabelUpperY.ActualWidth;
+			double left = FunctionImage.Margin.Left + Canvas.Margin.Left - LabelWidth;
 			LabelUpperY.Margin = new Thickness {Left = left};
 			LabelLowerY.Margin = new Thickness {Left = left, Bottom = LabelLowerY.Margin.Bottom};
-			//LabelUpperY.Margin = new Thickness(LabelUpperY.Margin.Left, LabelUpperY.Margin.Top, left, LabelUpperY.Margin.Bottom);
-			//LabelUpperY.Margin = new Thickness(FunctionImage.Margin.Left + Canvas.Margin.Left, LabelUpperY.Margin.Top, LabelUpperY.Margin.Right, LabelUpperY.Margin.Bottom);
-			//LabelLowerY.Margin = new Thickness(FunctionImage.Margin.Left + Canvas.Margin.Left, LabelLowerY.Margin.Top, LabelLowerY.Margin.Right, LabelLowerY.Margin.Bottom);
+
+			LabelUpperX.Content = _function.BoundUpper;
+			LabelLowerX.Content = _function.BoundLower;
+			LabelLowerX.Margin = new Thickness {Left = left + LabelWidth, Bottom = LabelLowerX.Margin.Bottom};
+			LabelUpperX.Margin = new Thickness {Left = left + width, Bottom = LabelUpperX.Margin.Bottom};
 
 			RunButton.IsEnabled = true;
 		}
@@ -222,7 +220,7 @@ namespace CuckooFlights
 			}
 
 			// G: 0 to 255
-			if (/*b <= value && */value < gb)
+			if ( /*b <= value && */value < gb)
 			{
 				double up = value - b;
 				double scale = up / colorDist;
@@ -248,25 +246,25 @@ namespace CuckooFlights
 			// L
 			if (x <= left)
 			{
-			    double dist = x - function.BoundLower;
-			    double scale = dist / opacityMargin;
-			    xOpacity = Convert.ToByte(scale * 255);
+				double dist = x - function.BoundLower;
+				double scale = dist / opacityMargin;
+				xOpacity = Convert.ToByte(scale * 255);
 			}
 
 			// R
 			if (right <= x)
 			{
-			    double dist = function.BoundUpper - x;
-			    double scale = dist / opacityMargin;
-			    xOpacity = Convert.ToByte(scale * 255);
+				double dist = function.BoundUpper - x;
+				double scale = dist / opacityMargin;
+				xOpacity = Convert.ToByte(scale * 255);
 			}
 
 			// L
 			if (y <= top)
 			{
-			    double dist = y - function.BoundLower;
-			    double scale = dist / opacityMargin;
-			    yOpacity = Convert.ToByte(scale * 255);
+				double dist = y - function.BoundLower;
+				double scale = dist / opacityMargin;
+				yOpacity = Convert.ToByte(scale * 255);
 			}
 
 			// R
