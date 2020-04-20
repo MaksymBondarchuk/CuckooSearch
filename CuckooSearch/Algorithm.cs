@@ -87,7 +87,7 @@ namespace CuckooSearch
 			for (int i = 0; i < Population.Cuckoos.Count; i++)
 			{
 				Bird cuckoo = Population.Cuckoos[i];
-				Console.WriteLine($"Fx = {cuckoo.Fx,-16:0.000000000000} X={cuckoo.X[0]} Y={cuckoo.X[1]}");
+				// Console.WriteLine($"Fx = {cuckoo.Fx,-16:0.000000000000} X={cuckoo.X[0]} Y={cuckoo.X[1]}");
 				
 				#region Move Cuckoo
 
@@ -112,7 +112,7 @@ namespace CuckooSearch
 				}
 
 				cuckoo.Fx = function.Expression(cuckoo.X);
-				Console.WriteLine($"Fx = {cuckoo.Fx,-16:0.000000000000} X={cuckoo.X[0]} Y={cuckoo.X[1]}");
+				// Console.WriteLine($"Fx = {cuckoo.Fx,-16:0.000000000000} X={cuckoo.X[0]} Y={cuckoo.X[1]}");
 				// Console.WriteLine($"Walked {dist,-8:0.00000} Lambda = {lambda,-7:0.00000} Fx = {cuckoo.Fx,-16:0.000000000000} X={cuckoo.X[0]} Y={cuckoo.X[1]}");
 
 				#endregion

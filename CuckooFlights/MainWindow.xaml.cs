@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace CuckooFlights
 
 		private const int NestsNumber = 15;
 		private List<Ellipse> Nests = new List<Ellipse>();
-		
+
 		private Function _function;
 		private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
@@ -77,8 +78,8 @@ namespace CuckooFlights
 						mul *= Math.Cos(x[i] / Math.Sqrt(i + 1));
 					return x.Sum(t => t * t / 4000) - mul + 1;
 				},
-				BoundLower = -5,
-				BoundUpper = 5,
+				BoundLower = -100,
+				BoundUpper = 100,
 				Dimensions = 2
 			};
 			DrawFunction(_function);
@@ -122,22 +123,32 @@ namespace CuckooFlights
 		private void DrawFunction(Function function)
 		{
 			Reset();
-			
+
 			int canvasHeight = Convert.ToInt32(Canvas.ActualHeight);
 			int canvasWidth = Convert.ToInt32(Canvas.ActualWidth);
 			int height = Math.Min(canvasHeight, canvasWidth);
+			if (height % 2 == 0)
+			{
+				height--;
+			}
+			Console.WriteLine($"height={height}");
 			int width = height;
 			(double min, double max) = GetFunctionMinMax(function, width, height);
 
 			double stepWidth = Math.Abs(function.BoundUpper - function.BoundLower) / (width - 1);
-			double stepHeight = Math.Abs(function.BoundUpper - function.BoundLower) / (height - 1);
+			Console.WriteLine($"stepWidth={stepWidth}");
+			double stepHeight = stepWidth; //Math.Abs(function.BoundUpper - function.BoundLower) / (height - 1);
+			Console.WriteLine($"stepHeight={stepHeight}");
+			Console.WriteLine();
 			// var pixels = new byte[height, width, 4];
 			var pixels1d = new byte[height * width * 4];
 			int pixelsIndex = 0;
-			for (double x = function.BoundLower; x <= function.BoundUpper; x += stepWidth)
+			for (int w = 0; w < width; w++)
 			{
-				for (double y = function.BoundLower; y <= function.BoundUpper; y += stepHeight)
+				for (int h = 0; h < height; h++)
 				{
+					double x = TansformPixelToX(w, width);
+					double y = TansformPixelToY(h, height);
 					Color color = GetColor(function, max, min, x, y);
 					pixels1d[pixelsIndex++] = color.B;
 					pixels1d[pixelsIndex++] = color.G;
@@ -145,6 +156,23 @@ namespace CuckooFlights
 					pixels1d[pixelsIndex++] = GetOpacity(function, x, y);
 				}
 			}
+			
+			// for (double x = function.BoundLower; x <= function.BoundUpper; x += stepWidth)
+			// {
+			// 	for (double y = function.BoundLower; y <= function.BoundUpper; y += stepHeight)
+			// 	{
+			// 		if (0 <= x && x <= 0.5 && 0 <= y && y <= 0.5)
+			// 		{
+			// 			// Debugger.Break();
+			// 		}
+			//
+			// 		Color color = GetColor(function, max, min, x, y);
+			// 		pixels1d[pixelsIndex++] = color.B;
+			// 		pixels1d[pixelsIndex++] = color.G;
+			// 		pixels1d[pixelsIndex++] = color.R;
+			// 		pixels1d[pixelsIndex++] = GetOpacity(function, x, y);
+			// 	}
+			// }
 
 			FunctionImage.Height = height;
 			FunctionImage.Width = width;
@@ -158,8 +186,18 @@ namespace CuckooFlights
 				(canvasHeight - height) * .5,
 				FunctionImage.Margin.Right,
 				FunctionImage.Margin.Bottom);
-
 			Panel.SetZIndex(FunctionImage, 1);
+
+			LabelUpperY.Content = _function.BoundUpper;
+			LabelLowerY.Content = _function.BoundLower;
+			double left = FunctionImage.Margin.Left + Canvas.Margin.Left - LabelUpperY.ActualWidth;
+			//double left = Window.ActualWidth - Canvas.Margin.Left - FunctionImage.Margin.Left - LabelUpperY.ActualWidth;
+			LabelUpperY.Margin = new Thickness {Left = left};
+			LabelLowerY.Margin = new Thickness {Left = left, Bottom = LabelLowerY.Margin.Bottom};
+			//LabelUpperY.Margin = new Thickness(LabelUpperY.Margin.Left, LabelUpperY.Margin.Top, left, LabelUpperY.Margin.Bottom);
+			//LabelUpperY.Margin = new Thickness(FunctionImage.Margin.Left + Canvas.Margin.Left, LabelUpperY.Margin.Top, LabelUpperY.Margin.Right, LabelUpperY.Margin.Bottom);
+			//LabelLowerY.Margin = new Thickness(FunctionImage.Margin.Left + Canvas.Margin.Left, LabelLowerY.Margin.Top, LabelLowerY.Margin.Right, LabelLowerY.Margin.Bottom);
+
 			RunButton.IsEnabled = true;
 		}
 
@@ -226,25 +264,25 @@ namespace CuckooFlights
 			// L
 			if (x <= left)
 			{
-				double dist = x - function.BoundLower;
-				double scale = dist / opacityMargin;
-				xOpacity = Convert.ToByte(scale * 255);
+			    double dist = x - function.BoundLower;
+			    double scale = dist / opacityMargin;
+			    xOpacity = Convert.ToByte(scale * 255);
 			}
 
 			// R
 			if (right <= x)
 			{
-				double dist = function.BoundUpper - x;
-				double scale = dist / opacityMargin;
-				xOpacity = Convert.ToByte(scale * 255);
+			    double dist = function.BoundUpper - x;
+			    double scale = dist / opacityMargin;
+			    xOpacity = Convert.ToByte(scale * 255);
 			}
 
 			// L
 			if (y <= top)
 			{
-				double dist = y - function.BoundLower;
-				double scale = dist / opacityMargin;
-				yOpacity = Convert.ToByte(scale * 255);
+			    double dist = y - function.BoundLower;
+			    double scale = dist / opacityMargin;
+			    yOpacity = Convert.ToByte(scale * 255);
 			}
 
 			// R
@@ -283,6 +321,22 @@ namespace CuckooFlights
 			}
 
 			return new Tuple<double, double>(min, max);
+		}
+
+		private double TansformPixelToX(int w, int imageSize)
+		{
+			double dist = Math.Abs(_function.BoundUpper - _function.BoundLower);
+			double scale = dist / imageSize;
+
+			return _function.BoundLower + w * dist / imageSize;
+		}
+
+		private double TansformPixelToY(int h, int imageSize)
+		{
+			double dist = Math.Abs(_function.BoundUpper - _function.BoundLower);
+			double scale = dist / imageSize;
+
+			return _function.BoundLower + (imageSize - h) * dist / imageSize;
 		}
 
 		#endregion
@@ -353,7 +407,7 @@ namespace CuckooFlights
 					nest.SetValue(Canvas.LeftProperty, TrabsformX(_function, host.X[0]) - 2);
 					nest.SetValue(Canvas.TopProperty, TrabsformY(_function, host.X[1]) - 2);
 				}
-				
+
 				prevX = x;
 				prevY = y;
 				await Task.Delay(10);
@@ -381,6 +435,15 @@ namespace CuckooFlights
 			_cancellationTokenSource.Cancel();
 			Nests.Clear();
 			Canvas.Children.RemoveRange(1, Canvas.Children.Count - 1);
+		}
+
+		private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+		{
+			Reset();
+			if (_function != null)
+			{
+				DrawFunction(_function);
+			}
 		}
 	}
 }

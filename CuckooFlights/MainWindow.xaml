@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CuckooFlights"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" WindowState="Maximized" WindowStartupLocation="CenterScreen">
+        Title="MainWindow" Height="450" Width="800" WindowState="Maximized" WindowStartupLocation="CenterScreen" SizeChanged="Window_SizeChanged">
     <Grid x:Name="MainGrid">
         <Grid HorizontalAlignment="Left" Width="122">
             <RadioButton x:Name="SphereRb" Content="Sphere" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Checked="SphereRb_Checked"/>
@@ -15,8 +15,12 @@
             <RadioButton x:Name="AckleyRb" Content="Ackley" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Checked="AckleyRb_Checked"/>
             <Button x:Name="RunButton" Content="Run" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Click="RunButton_Click" IsEnabled="False"/>
         </Grid>
-        <Canvas x:Name="Canvas" Margin="127,0,0,0">
+        <Canvas x:Name="Canvas" Margin="165,0,0,27">
             <Image x:Name="FunctionImage" Stretch="None"/>
         </Canvas>
+        <Label x:Name="LabelUpperY" Content="Label" HorizontalAlignment="Left" Margin="127,0,0,0" VerticalAlignment="Top" HorizontalContentAlignment="Right"/>
+        <Label x:Name="LabelLowerY" Content="LY" HorizontalAlignment="Left" Margin="127,0,0,26" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" Width="38"/>
+        <Label x:Name="LabelLowerX" Content="Label" HorizontalAlignment="Left" Margin="165,0,0,0" VerticalAlignment="Bottom"/>
+        <Label x:Name="LabelUpperX" Content="Label" HorizontalAlignment="Right" VerticalAlignment="Bottom" HorizontalContentAlignment="Right"/>
     </Grid>
 </Window>
