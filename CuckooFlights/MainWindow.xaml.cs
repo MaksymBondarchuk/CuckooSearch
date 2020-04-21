@@ -20,7 +20,7 @@ namespace CuckooFlights
 		#region DI
 
 		private const int NestsNumber = 15;
-		private List<Ellipse> Nests = new List<Ellipse>();
+		private readonly List<Ellipse> Nests = new List<Ellipse>();
 
 		private Function _function;
 		private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
@@ -106,7 +106,9 @@ namespace CuckooFlights
 				{
 					double res = .0;
 					for (int i = 0; i < x.Count - 1; i++)
+					{
 						res += 100 * Math.Pow(x[i + 1] - x[i] * x[i], 2) + (x[i] - 1) * (x[i] - 1);
+					}
 					return res;
 				},
 				BoundLower = -2.048,
@@ -135,17 +137,14 @@ namespace CuckooFlights
 			int width = height;
 			(double min, double max) = GetFunctionMinMax(function, width, height);
 
-			double stepWidth = Math.Abs(function.BoundUpper - function.BoundLower) / (width - 1);
-			double stepHeight = stepWidth; //Math.Abs(function.BoundUpper - function.BoundLower) / (height - 1);
-			// var pixels = new byte[height, width, 4];
 			var pixels1d = new byte[height * width * 4];
 			int pixelsIndex = 0;
-			for (int w = 0; w < width; w++)
+			for (int h = 0; h < height; h++)
 			{
-				double x = TansformPixelToX(w, width);
-				for (int h = 0; h < height; h++)
+				double y = TansformPixelToY(h, height);
+				for (int w = 0; w < width; w++)
 				{
-					double y = TansformPixelToY(h, height);
+					double x = TansformPixelToX(w, width);
 
 					Color color = GetColor(function, max, min, x, y);
 					pixels1d[pixelsIndex++] = color.B;
@@ -330,7 +329,9 @@ namespace CuckooFlights
 			Reset();
 
 			_cancellationTokenSource = new CancellationTokenSource();
+			RunButton.IsEnabled = false;
 			await RunAlgorithm(_cancellationTokenSource.Token);
+			RunButton.IsEnabled = true;
 		}
 
 		private async Task RunAlgorithm(CancellationToken cancellationToken)
@@ -417,6 +418,7 @@ namespace CuckooFlights
 			_cancellationTokenSource.Cancel();
 			Nests.Clear();
 			Canvas.Children.RemoveRange(1, Canvas.Children.Count - 1);
+			RunButton.IsEnabled = true;
 		}
 
 		private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
