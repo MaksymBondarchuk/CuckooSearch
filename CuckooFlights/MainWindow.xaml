@@ -20,7 +20,7 @@
         </Canvas>
         <Label x:Name="LabelUpperY" Content="" HorizontalAlignment="Left" Margin="115,0,0,0" VerticalAlignment="Top" HorizontalContentAlignment="Right" Width="50"/>
         <Label x:Name="LabelLowerY" Content="" HorizontalAlignment="Left" Margin="115,0,0,27" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" Width="50"/>
-        <Label x:Name="LabelLowerX" Content="Label" HorizontalAlignment="Left" Margin="165,0,0,0" VerticalAlignment="Bottom" Width="50" Padding="5,0,5,5"/>
-        <Label x:Name="LabelUpperX" Content="Label" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" Padding="5,0,5,5" Margin="750,0,0,0" HorizontalAlignment="Left" Width="50"/>
+        <Label x:Name="LabelLowerX" Content="" HorizontalAlignment="Left" Margin="165,0,0,0" VerticalAlignment="Bottom" Width="50" Padding="5,0,5,5"/>
+        <Label x:Name="LabelUpperX" Content="" VerticalAlignment="Bottom" HorizontalContentAlignment="Right" Padding="5,0,5,5" Margin="750,0,0,0" HorizontalAlignment="Left" Width="50"/>
     </Grid>
 </Window>
