@@ -1,4 +1,4 @@
-For begginers
+For beginners
 https://en.wikipedia.org/wiki/Cuckoo_search
 
 For scientists
