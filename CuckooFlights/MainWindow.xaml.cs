@@ -29,8 +29,6 @@ namespace CuckooFlights
 		private readonly SolidColorBrush _brushBlack = Brushes.Black;
 		private readonly SolidColorBrush _brushWhite = Brushes.White;
 		private const int LabelWidth = 50;
-		private bool _lambdaChangedManually;
-		private bool _alphaChangedManually;
 
 		public MainWindow()
 		{
@@ -174,13 +172,18 @@ namespace CuckooFlights
 			}
 		}
 
+		private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			Keyboard.ClearFocus();
+		}
+
 		private void Lambda_PreviewTextInput(object sender, TextCompositionEventArgs e)
 		{
 			var approvedDecimalPoint = false;
 
-			if (e.Text == ".")
+			if (e.Text == "." || e.Text == ",")
 			{
-				if (!((TextBox)sender).Text.Contains("."))
+				if (!((TextBox)sender).Text.Contains(".") && !((TextBox)sender).Text.Contains(","))
 				{
 					approvedDecimalPoint = true;
 				}
@@ -190,9 +193,6 @@ namespace CuckooFlights
 			{
 				e.Handled = true;
 			}
-
-			_lambdaChangedManually = true;
-			//Keyboard.ClearFocus();
 		}
 
 		#endregion
@@ -261,6 +261,7 @@ namespace CuckooFlights
 			CalculateLambda();
 			CalculateAlpha();
 			RunButton.IsEnabled = true;
+			ParamsGrid.IsEnabled = true;
 		}
 
 		private static Color GetColor(Function function, double max, double min, double x, double y)
@@ -511,7 +512,6 @@ namespace CuckooFlights
 				await Task.Delay(10);
 			}
 		}
-
 
 		private void Reset()
 		{

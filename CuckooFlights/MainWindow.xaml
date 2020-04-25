@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CuckooFlights"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" WindowState="Maximized" WindowStartupLocation="CenterScreen" SizeChanged="Window_SizeChanged" Icon="/cuckoo.png">
+        Title="MainWindow" Height="450" Width="800" WindowState="Maximized" WindowStartupLocation="CenterScreen" SizeChanged="Window_SizeChanged" MouseDown="Window_MouseDown">
     <Grid x:Name="MainGrid">
         <Grid HorizontalAlignment="Left" Width="122">
             <RadioButton x:Name="SphereRb" Content="Sphere" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Checked="SphereRb_Checked"/>
@@ -14,13 +14,13 @@
             <RadioButton x:Name="RosenbrockRb" Content="Rosenbrock" HorizontalAlignment="Left" Margin="10,90,0,0" VerticalAlignment="Top" Checked="RosenbrockRb_Checked"/>
             <RadioButton x:Name="AckleyRb" Content="Ackley" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Checked="AckleyRb_Checked"/>
             <Button x:Name="RunButton" Content="Run" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Click="RunButton_Click" IsEnabled="False"/>
-            <Grid Margin="0,184,0,0" Height="177" VerticalAlignment="Top">
-                <TextBox x:Name="Lambda" HorizontalAlignment="Center" Margin="0,146,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="102" PreviewTextInput="Lambda_PreviewTextInput" IsEnabled="False"/>
-                <Label x:Name="LambdaLabel" Content="Lambda" HorizontalAlignment="Left" Margin="10,120,0,0" VerticalAlignment="Top" IsEnabled="False"/>
-                <TextBox x:Name="Alpha" HorizontalAlignment="Center" Margin="0,102,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="102" PreviewTextInput="Lambda_PreviewTextInput" IsEnabled="False"/>
-                <Label x:Name="AlphaLabel" Content="Alpha" HorizontalAlignment="Left" Margin="10,76,0,0" VerticalAlignment="Top" IsEnabled="False"/>
-                <RadioButton x:Name="ManualRb" Content="Manual" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Checked="ManualRb_Checked"/>
-                <RadioButton x:Name="AutomaticRb" Content="Automatic" HorizontalAlignment="Left" Margin="10,56,0,0" VerticalAlignment="Top" Checked="AutomaticRb_Checked" IsChecked="True"/>
+            <Grid x:Name="ParamsGrid" Margin="0,184,0,0" Height="177" VerticalAlignment="Top" IsEnabled="False">
+                <TextBox x:Name="Lambda" ToolTipService.ShowOnDisabled="True" HorizontalAlignment="Center" Margin="0,146,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="102" PreviewTextInput="Lambda_PreviewTextInput" IsEnabled="False" ToolTip="1.5-3: the smaller the value, the wider the step"/>
+                <Label x:Name="LambdaLabel" ToolTipService.ShowOnDisabled="True" Content="Lambda" HorizontalAlignment="Left" Margin="10,120,0,0" VerticalAlignment="Top" IsEnabled="False" ToolTip="1.5-3: the smaller the value, the wider the step"/>
+                <TextBox x:Name="Alpha" ToolTipService.ShowOnDisabled="True" HorizontalAlignment="Center" Margin="0,102,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="102" PreviewTextInput="Lambda_PreviewTextInput" IsEnabled="False" ToolTip="0.1-1: the smaller the value, the smaller the step"/>
+                <Label x:Name="AlphaLabel" ToolTipService.ShowOnDisabled="True" Content="Alpha" HorizontalAlignment="Left" Margin="10,76,0,0" VerticalAlignment="Top" IsEnabled="False" ToolTip="0.1-1: the smaller the value, the smaller the step"/>
+                <RadioButton x:Name="ManualRb" Content="Manual" HorizontalAlignment="Left" Margin="10,56,0,0" VerticalAlignment="Top" Checked="ManualRb_Checked"/>
+                <RadioButton x:Name="AutomaticRb" Content="Automatic" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Checked="AutomaticRb_Checked" IsChecked="True" IsEnabled="False"/>
                 <Label Content="Params values" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
             </Grid>
             <Button x:Name="ResetButton" Content="Reset" HorizontalAlignment="Center" Margin="0,0,0,10" VerticalAlignment="Bottom" Click="ResetButton_Click" IsEnabled="False"/>
