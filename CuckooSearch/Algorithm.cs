@@ -17,12 +17,14 @@ namespace CuckooSearch
 		private int _iteration;
 		private int _lastImprovementOn;
 		private Bird _best;
+		private double _lambda;
+		private double _alpha;
 
 		#endregion
 
 		#region Initialization
 
-		public void Initialize(int hostsNumber, int cuckoosNumber, Function function)
+		public void Initialize(int hostsNumber, int cuckoosNumber, Function function, double alpha, double lambda)
 		{
 			_function = function;
 
@@ -45,6 +47,8 @@ namespace CuckooSearch
 			_iteration = 0;
 			_lastImprovementOn = 0;
 			_best = new Bird();
+			_lambda = lambda;
+			_alpha = alpha;
 		}
 
 		#endregion
@@ -53,7 +57,7 @@ namespace CuckooSearch
 		{
 			var stopwatch = Stopwatch.StartNew();
 
-			Initialize(hostsNumber, cuckoosNumber, function);
+			Initialize(hostsNumber, cuckoosNumber, function, 1, 1.5);
 
 			// double vMax = Math.Abs(Function.BoundUpper - Function.BoundLower) * .1;
 			// const double wLow = 0.1;
@@ -81,7 +85,7 @@ namespace CuckooSearch
 			
 			Population.Cuckoos = Population.Cuckoos.OrderBy(c => c.Fx).ToList();
 
-			const double alpha = 1;
+            double alpha = _alpha;// .1;
 			// double alpha = function.AlphaMax * Math.Pow(function.AlphaMin / function.AlphaMax, _iteration);
 
 			for (int i = 0; i < Population.Cuckoos.Count; i++)
@@ -91,7 +95,7 @@ namespace CuckooSearch
 				
 				#region Move Cuckoo
 
-				double lambda = 1.5;
+				double lambda = _lambda;// 1.5;
 				// double lambda = function.LambdaMax - i * (function.LambdaMax - function.LambdaMin) / (Population.Cuckoos.Count /*- 1*/);
 
 				for (int d = 0; d < _function.Dimensions; d++)

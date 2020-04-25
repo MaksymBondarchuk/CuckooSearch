@@ -9,7 +9,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="bird.png" />
+    <None Remove="cuckoo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CuckooSearch\CuckooSearch.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="bird.png" />
+    <Resource Include="cuckoo.png" />
   </ItemGroup>
 
 </Project>

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
@@ -15,12 +16,12 @@ namespace CuckooFlights
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
-	public partial class MainWindow : Window
+	public partial class MainWindow
 	{
 		#region DI
 
 		private const int NestsNumber = 15;
-		private readonly List<Ellipse> Nests = new List<Ellipse>();
+		private readonly List<Ellipse> _nests = new List<Ellipse>();
 
 		private Function _function;
 		private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
@@ -28,6 +29,8 @@ namespace CuckooFlights
 		private readonly SolidColorBrush _brushBlack = Brushes.Black;
 		private readonly SolidColorBrush _brushWhite = Brushes.White;
 		private const int LabelWidth = 50;
+		private bool _lambdaChangedManually;
+		private bool _alphaChangedManually;
 
 		public MainWindow()
 		{
@@ -35,6 +38,8 @@ namespace CuckooFlights
 		}
 
 		#endregion
+
+		#region Controls
 
 		#region Radio Buttons
 
@@ -47,7 +52,7 @@ namespace CuckooFlights
 				BoundUpper = 100,
 				Dimensions = 2
 			};
-			DrawFunction(_function);
+			DrawFunction();
 		}
 
 		private void AckleyRb_Checked(object sender, RoutedEventArgs e)
@@ -64,7 +69,7 @@ namespace CuckooFlights
 				BoundUpper = 32.768,
 				Dimensions = 2
 			};
-			DrawFunction(_function);
+			DrawFunction();
 		}
 
 		private void GriewankRb_Checked(object sender, RoutedEventArgs e)
@@ -82,7 +87,7 @@ namespace CuckooFlights
 				BoundUpper = 100,
 				Dimensions = 2
 			};
-			DrawFunction(_function);
+			DrawFunction();
 		}
 
 		private void RastriginRb_Checked(object sender, RoutedEventArgs e)
@@ -95,7 +100,7 @@ namespace CuckooFlights
 				Dimensions = 2,
 				IterationsNumber = 150000
 			};
-			DrawFunction(_function);
+			DrawFunction();
 		}
 
 		private void RosenbrockRb_Checked(object sender, RoutedEventArgs e)
@@ -109,20 +114,94 @@ namespace CuckooFlights
 					{
 						res += 100 * Math.Pow(x[i + 1] - x[i] * x[i], 2) + (x[i] - 1) * (x[i] - 1);
 					}
+
 					return res;
 				},
 				BoundLower = -2.048,
 				BoundUpper = 2.048,
 				Dimensions = 2
 			};
-			DrawFunction(_function);
+			DrawFunction();
+		}
+
+		private void ManualRb_Checked(object sender, RoutedEventArgs e)
+		{
+			AlphaLabel.IsEnabled = true;
+			Alpha.IsEnabled = true;
+			LambdaLabel.IsEnabled = true;
+			Lambda.IsEnabled = true;
+		}
+
+		private void AutomaticRb_Checked(object sender, RoutedEventArgs e)
+		{
+			AlphaLabel.IsEnabled = false;
+			Alpha.IsEnabled = false;
+			LambdaLabel.IsEnabled = false;
+			Lambda.IsEnabled = false;
 		}
 
 		#endregion
 
-		#region Colors
+		#region Buttons
 
-		private void DrawFunction(Function function)
+		private async void RunButton_Click(object sender, RoutedEventArgs e)
+		{
+			Reset();
+
+			ResetButton.IsEnabled = true;
+			RunButton.IsEnabled = false;
+			await RunAlgorithm(_cancellationTokenSource.Token);
+			RunButton.IsEnabled = true;
+			ResetButton.IsEnabled = false;
+		}
+
+		private void ResetButton_Click(object sender, RoutedEventArgs e)
+		{
+			Reset();
+			RunButton.IsEnabled = true;
+		}
+
+		#endregion
+
+		#region Other
+
+		private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+		{
+			Reset();
+			if (_function != null)
+			{
+				DrawFunction();
+			}
+		}
+
+		private void Lambda_PreviewTextInput(object sender, TextCompositionEventArgs e)
+		{
+			var approvedDecimalPoint = false;
+
+			if (e.Text == ".")
+			{
+				if (!((TextBox)sender).Text.Contains("."))
+				{
+					approvedDecimalPoint = true;
+				}
+			}
+
+			if (!(char.IsDigit(e.Text, e.Text.Length - 1) || approvedDecimalPoint))
+			{
+				e.Handled = true;
+			}
+
+			_lambdaChangedManually = true;
+			//Keyboard.ClearFocus();
+		}
+
+		#endregion
+
+		#endregion
+
+		#region Graphics
+
+		private void DrawFunction()
 		{
 			Reset();
 
@@ -135,22 +214,22 @@ namespace CuckooFlights
 			}
 
 			int width = height;
-			(double min, double max) = GetFunctionMinMax(function, width, height);
+			(double min, double max) = GetFunctionMinMax(_function, width, height);
 
 			var pixels1d = new byte[height * width * 4];
 			int pixelsIndex = 0;
 			for (int h = 0; h < height; h++)
 			{
-				double y = TansformPixelToY(h, height);
+				double y = TransformPixelToY(h, height);
 				for (int w = 0; w < width; w++)
 				{
-					double x = TansformPixelToX(w, width);
+					double x = TransformPixelToX(w, width);
 
-					Color color = GetColor(function, max, min, x, y);
+					Color color = GetColor(_function, max, min, x, y);
 					pixels1d[pixelsIndex++] = color.B;
 					pixels1d[pixelsIndex++] = color.G;
 					pixels1d[pixelsIndex++] = color.R;
-					pixels1d[pixelsIndex++] = GetOpacity(function, x, y);
+					pixels1d[pixelsIndex++] = GetOpacity(_function, x, y);
 				}
 			}
 
@@ -171,20 +250,22 @@ namespace CuckooFlights
 			LabelUpperY.Content = _function.BoundUpper;
 			LabelLowerY.Content = _function.BoundLower;
 			double left = FunctionImage.Margin.Left + Canvas.Margin.Left - LabelWidth;
-			LabelUpperY.Margin = new Thickness {Left = left};
-			LabelLowerY.Margin = new Thickness {Left = left, Bottom = LabelLowerY.Margin.Bottom};
+			LabelUpperY.Margin = new Thickness { Left = left };
+			LabelLowerY.Margin = new Thickness { Left = left, Bottom = LabelLowerY.Margin.Bottom };
 
 			LabelUpperX.Content = _function.BoundUpper;
 			LabelLowerX.Content = _function.BoundLower;
-			LabelLowerX.Margin = new Thickness {Left = left + LabelWidth, Bottom = LabelLowerX.Margin.Bottom};
-			LabelUpperX.Margin = new Thickness {Left = left + width, Bottom = LabelUpperX.Margin.Bottom};
+			LabelLowerX.Margin = new Thickness { Left = left + LabelWidth, Bottom = LabelLowerX.Margin.Bottom };
+			LabelUpperX.Margin = new Thickness { Left = left + width, Bottom = LabelUpperX.Margin.Bottom };
 
+			CalculateLambda();
+			CalculateAlpha();
 			RunButton.IsEnabled = true;
 		}
 
 		private static Color GetColor(Function function, double max, double min, double x, double y)
 		{
-			double value = function.Expression(new List<double> {x, y});
+			double value = function.Expression(new List<double> { x, y });
 
 			double dist = Math.Abs(max - min);
 			double colorDist = dist / 4;
@@ -199,7 +280,7 @@ namespace CuckooFlights
 			{
 				double up = value - rg;
 				double scale = up / colorDist;
-				return new Color {A = byte.MaxValue, R = 255, G = Convert.ToByte((1 - scale) * 255), B = 0};
+				return new Color { A = byte.MaxValue, R = 255, G = Convert.ToByte((1 - scale) * 255), B = 0 };
 			}
 
 			// R: 0 to 255
@@ -207,7 +288,7 @@ namespace CuckooFlights
 			{
 				double up = value - g;
 				double scale = up / colorDist;
-				return new Color {A = byte.MaxValue, R = Convert.ToByte(scale * 255), G = 255, B = 0};
+				return new Color { A = byte.MaxValue, R = Convert.ToByte(scale * 255), G = 255, B = 0 };
 			}
 
 			// B: 255 to 0
@@ -215,7 +296,7 @@ namespace CuckooFlights
 			{
 				double up = value - gb;
 				double scale = up / colorDist;
-				return new Color {A = byte.MaxValue, R = 0, G = 255, B = Convert.ToByte((1 - scale) * 255)};
+				return new Color { A = byte.MaxValue, R = 0, G = 255, B = Convert.ToByte((1 - scale) * 255) };
 			}
 
 			// G: 0 to 255
@@ -223,7 +304,7 @@ namespace CuckooFlights
 			{
 				double up = value - b;
 				double scale = up / colorDist;
-				return new Color {A = byte.MaxValue, R = 0, G = Convert.ToByte(scale * 255), B = 255};
+				return new Color { A = byte.MaxValue, R = 0, G = Convert.ToByte(scale * 255), B = 255 };
 			}
 
 			return Colors.White;
@@ -277,9 +358,41 @@ namespace CuckooFlights
 			return Math.Min(xOpacity, yOpacity);
 		}
 
+		#endregion
+
+		#region Mathematics
+
+		private double TransformPixelToX(int w, int imageSize)
+		{
+			double dist = Math.Abs(_function.BoundUpper - _function.BoundLower);
+
+			return _function.BoundLower + w * dist / imageSize;
+		}
+
+		private double TransformPixelToY(int h, int imageSize)
+		{
+			double dist = Math.Abs(_function.BoundUpper - _function.BoundLower);
+
+			return _function.BoundLower + (imageSize - h) * dist / imageSize;
+		}
+
+		private double TransformX(Function function, double x)
+		{
+			double marginLeft = x - function.BoundLower;
+			double scale = marginLeft / Math.Abs(function.BoundUpper - function.BoundLower);
+			return FunctionImage.Margin.Left + scale * FunctionImage.ActualWidth;
+		}
+
+		private double TransformY(Function function, double y)
+		{
+			double marginTop = y - function.BoundLower;
+			double scale = marginTop / Math.Abs(function.BoundUpper - function.BoundLower);
+			return FunctionImage.Margin.Top + scale * FunctionImage.ActualWidth;
+		}
+
 		private static Tuple<double, double> GetFunctionMinMax(Function function, int width, int height)
 		{
-			double min = function.Expression(new List<double> {function.BoundLower, function.BoundLower});
+			double min = function.Expression(new List<double> { function.BoundLower, function.BoundLower });
 			double max = min;
 
 			double stepWidth = Math.Abs(function.BoundUpper - function.BoundLower) / (width - 1);
@@ -288,7 +401,7 @@ namespace CuckooFlights
 			{
 				for (double y = function.BoundLower; y <= function.BoundUpper; y += stepHeight)
 				{
-					double value = function.Expression(new List<double> {x, y});
+					double value = function.Expression(new List<double> { x, y });
 					if (value < min)
 					{
 						min = value;
@@ -304,40 +417,44 @@ namespace CuckooFlights
 			return new Tuple<double, double>(min, max);
 		}
 
-		private double TansformPixelToX(int w, int imageSize)
+		private double CalculateAlpha()
 		{
-			double dist = Math.Abs(_function.BoundUpper - _function.BoundLower);
-			double scale = dist / imageSize;
+			if (ManualRb.IsChecked == true)
+			//if (_lambdaChangedManually)
+			{
+				return double.Parse(Alpha.Text.Replace('.', ','));
+			}
 
-			return _function.BoundLower + w * dist / imageSize;
+			// dist = 100+ will be 1.5
+			// dist = 0 will be 3
+			double lambda = Math.Min(.1 + .9 * (Math.Abs(_function.BoundUpper - _function.BoundLower) / 100), 1);
+			Alpha.Text = lambda.ToString("0.00");
+			return lambda;
 		}
 
-		private double TansformPixelToY(int h, int imageSize)
+		private double CalculateLambda()
 		{
-			double dist = Math.Abs(_function.BoundUpper - _function.BoundLower);
-			double scale = dist / imageSize;
+			if (ManualRb.IsChecked == true)
+			//if (_lambdaChangedManually)
+			{
+				return double.Parse(Lambda.Text.Replace('.', ','));
+			}
 
-			return _function.BoundLower + (imageSize - h) * dist / imageSize;
+			// dist = 100+ will be 1
+			// dist = 0 will be 0.1
+			double lambda = Math.Max(3 - 1.5 * (Math.Abs(_function.BoundUpper - _function.BoundLower) / 100), 1.5);
+			Lambda.Text = lambda.ToString("0.00");
+			return lambda;
 		}
 
 		#endregion
 
-		#region Run
-
-		private async void RunButton_Click(object sender, RoutedEventArgs e)
-		{
-			Reset();
-
-			_cancellationTokenSource = new CancellationTokenSource();
-			RunButton.IsEnabled = false;
-			await RunAlgorithm(_cancellationTokenSource.Token);
-			RunButton.IsEnabled = true;
-		}
+		#region Actions
 
 		private async Task RunAlgorithm(CancellationToken cancellationToken)
 		{
 			var algorithm = new Algorithm();
-			algorithm.Initialize(NestsNumber, 1, _function);
+			algorithm.Initialize(NestsNumber, 1, _function, CalculateAlpha(), CalculateLambda());
 
 			for (int i = 0; i < NestsNumber; i++)
 			{
@@ -347,13 +464,11 @@ namespace CuckooFlights
 					Height = 5,
 					Width = 5,
 					StrokeThickness = 1,
-					Stroke = _brushWhite,
-					// Margin = new Thickness(TrabsformX(_function, host.X[0]) - 2, TrabsformY(_function, host.X[1]) - 2, 0, 0)
-					// Fill = _brushWhite
+					Stroke = _brushWhite
 				};
-				Nests.Add(nest);
-				nest.SetValue(Canvas.LeftProperty, TrabsformX(_function, host.X[0]) - 2);
-				nest.SetValue(Canvas.TopProperty, TrabsformY(_function, host.X[1]) - 2);
+				_nests.Add(nest);
+				nest.SetValue(Canvas.LeftProperty, TransformX(_function, host.X[0]) - 2);
+				nest.SetValue(Canvas.TopProperty, TransformY(_function, host.X[1]) - 2);
 				Canvas.Children.Add(nest);
 				Panel.SetZIndex(Canvas.Children[^1], 3);
 			}
@@ -374,10 +489,10 @@ namespace CuckooFlights
 				double y = cuckoo.X[1];
 				Canvas.Children.Add(new Line
 				{
-					X1 = TrabsformX(_function, prevX),
-					X2 = TrabsformX(_function, x),
-					Y1 = TrabsformY(_function, prevY),
-					Y2 = TrabsformY(_function, y),
+					X1 = TransformX(_function, prevX),
+					X2 = TransformX(_function, x),
+					Y1 = TransformY(_function, prevY),
+					Y2 = TransformY(_function, y),
 					StrokeThickness = 1,
 					Stroke = _brushBlack
 				});
@@ -386,9 +501,9 @@ namespace CuckooFlights
 				for (int i = 0; i < NestsNumber; i++)
 				{
 					Bird host = algorithm.Population.Hosts[i];
-					Ellipse nest = Nests[i];
-					nest.SetValue(Canvas.LeftProperty, TrabsformX(_function, host.X[0]) - 2);
-					nest.SetValue(Canvas.TopProperty, TrabsformY(_function, host.X[1]) - 2);
+					Ellipse nest = _nests[i];
+					nest.SetValue(Canvas.LeftProperty, TransformX(_function, host.X[0]) - 2);
+					nest.SetValue(Canvas.TopProperty, TransformY(_function, host.X[1]) - 2);
 				}
 
 				prevX = x;
@@ -397,37 +512,16 @@ namespace CuckooFlights
 			}
 		}
 
-		private double TrabsformX(Function function, double x)
-		{
-			double marginLeft = x - function.BoundLower;
-			double scale = marginLeft / Math.Abs(function.BoundUpper - function.BoundLower);
-			return FunctionImage.Margin.Left + scale * FunctionImage.ActualWidth;
-		}
-
-		private double TrabsformY(Function function, double y)
-		{
-			double marginTop = y - function.BoundLower;
-			double scale = marginTop / Math.Abs(function.BoundUpper - function.BoundLower);
-			return FunctionImage.Margin.Top + scale * FunctionImage.ActualWidth;
-		}
-
-		#endregion
 
 		private void Reset()
 		{
 			_cancellationTokenSource.Cancel();
-			Nests.Clear();
+			_nests.Clear();
 			Canvas.Children.RemoveRange(1, Canvas.Children.Count - 1);
-			RunButton.IsEnabled = true;
+			_cancellationTokenSource = new CancellationTokenSource();
+			//_lambdaChangedManually = false;
 		}
 
-		private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
-		{
-			Reset();
-			if (_function != null)
-			{
-				DrawFunction(_function);
-			}
-		}
+		#endregion
 	}
 }
