@@ -37,8 +37,8 @@ namespace CuckooSearch
 			{
 				Expression = x =>
 				{
-					double mul = 1.0;
-					for (int i = 0; i < x.Count; i++)
+					var mul = 1.0;
+					for (var i = 0; i < x.Count; i++)
 						mul *= Math.Cos(x[i] / Math.Sqrt(i + 1));
 					return x.Sum(t => t * t / 4000) - mul + 1;
 				},
@@ -62,8 +62,8 @@ namespace CuckooSearch
 			{
 				Expression = x =>
 				{
-					double res = .0;
-					for (int i = 0; i < x.Count - 1; i++)
+					var res = .0;
+					for (var i = 0; i < x.Count - 1; i++)
 						res += 100 * Math.Pow(x[i + 1] - x[i] * x[i], 2) + (x[i] - 1) * (x[i] - 1);
 					return res;
 				},

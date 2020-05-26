@@ -22,13 +22,10 @@ namespace CuckooSearch
 		public void MoveToRandomLocation(Function function, Random random)
 		{
 			X.Clear();
-			for (int j = 0; j < function.Dimensions; j++)
+			for (var j = 0; j < function.Dimensions; j++)
 			{
 				double rnd = function.BoundLower + random.NextDouble() * (function.BoundUpper - function.BoundLower);
 				X.Add(rnd);
-		
-				// double range = Math.Abs(func.BoundUpper - func.BoundLower);
-				// V.Add(-range + random.NextDouble() * 2 * range);
 			}
 		
 			Fx = function.Expression(X);

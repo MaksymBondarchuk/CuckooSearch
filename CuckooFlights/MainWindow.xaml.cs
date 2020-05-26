@@ -76,8 +76,8 @@ namespace CuckooFlights
 			{
 				Expression = x =>
 				{
-					double mul = 1.0;
-					for (int i = 0; i < x.Count; i++)
+					var mul = 1.0;
+					for (var i = 0; i < x.Count; i++)
 						mul *= Math.Cos(x[i] / Math.Sqrt(i + 1));
 					return x.Sum(t => t * t / 4000) - mul + 1;
 				},
@@ -107,8 +107,8 @@ namespace CuckooFlights
 			{
 				Expression = x =>
 				{
-					double res = .0;
-					for (int i = 0; i < x.Count - 1; i++)
+					var res = .0;
+					for (var i = 0; i < x.Count - 1; i++)
 					{
 						res += 100 * Math.Pow(x[i + 1] - x[i] * x[i], 2) + (x[i] - 1) * (x[i] - 1);
 					}
@@ -205,8 +205,8 @@ namespace CuckooFlights
 		{
 			Reset();
 
-			int canvasHeight = Convert.ToInt32(Canvas.ActualHeight);
-			int canvasWidth = Convert.ToInt32(Canvas.ActualWidth);
+			var canvasHeight = Convert.ToInt32(Canvas.ActualHeight);
+			var canvasWidth = Convert.ToInt32(Canvas.ActualWidth);
 			int height = Math.Min(canvasHeight, canvasWidth);
 			if (height % 2 == 0)
 			{
@@ -217,11 +217,11 @@ namespace CuckooFlights
 			(double min, double max) = GetFunctionMinMax(_function, width, height);
 
 			var pixels1d = new byte[height * width * 4];
-			int pixelsIndex = 0;
-			for (int h = 0; h < height; h++)
+			var pixelsIndex = 0;
+			for (var h = 0; h < height; h++)
 			{
 				double y = TransformPixelToY(h, height);
-				for (int w = 0; w < width; w++)
+				for (var w = 0; w < width; w++)
 				{
 					double x = TransformPixelToX(w, width);
 
@@ -321,8 +321,8 @@ namespace CuckooFlights
 			double top = left;
 			double bottom = right;
 
-			byte xOpacity = byte.MaxValue;
-			byte yOpacity = byte.MaxValue;
+			var xOpacity = byte.MaxValue;
+			var yOpacity = byte.MaxValue;
 
 			// L
 			if (x <= left)
@@ -457,7 +457,7 @@ namespace CuckooFlights
 			var algorithm = new Algorithm();
 			algorithm.Initialize(NestsNumber, 1, _function, CalculateAlpha(), CalculateLambda());
 
-			for (int i = 0; i < NestsNumber; i++)
+			for (var i = 0; i < NestsNumber; i++)
 			{
 				Bird host = algorithm.Population.Hosts[i];
 				var nest = new Ellipse
@@ -477,7 +477,7 @@ namespace CuckooFlights
 			Bird cuckoo = algorithm.Population.Cuckoos.First();
 			double prevX = cuckoo.X[0];
 			double prevY = cuckoo.X[1];
-			for (int iter = 1; iter <= _function.IterationsNumber; iter++)
+			for (var iter = 1; iter <= _function.IterationsNumber; iter++)
 			{
 				if (cancellationToken.IsCancellationRequested)
 				{
@@ -499,7 +499,7 @@ namespace CuckooFlights
 				});
 				Panel.SetZIndex(Canvas.Children[^1], 2);
 
-				for (int i = 0; i < NestsNumber; i++)
+				for (var i = 0; i < NestsNumber; i++)
 				{
 					Bird host = algorithm.Population.Hosts[i];
 					Ellipse nest = _nests[i];
