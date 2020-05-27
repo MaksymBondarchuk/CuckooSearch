@@ -91,28 +91,14 @@ namespace CuckooFlights
 
 		private void MantegnaRb_Checked(object sender, RoutedEventArgs e)
 		{
-			// To skip event on form load
-			if (LambdaLabel.Visibility != Visibility.Hidden)
-			{
-				CalculateLambda();
-				CalculateAlpha();
-
-				LambdaLabel.Visibility = Visibility.Hidden;
-				Lambda.Visibility = Visibility.Hidden;
-			}
+			CalculateLambda();
+			CalculateAlpha();
 		}
 
 		private void LevyRb_Checked(object sender, RoutedEventArgs e)
 		{
-			// To skip event on form load
-			if (LambdaLabel.Visibility != Visibility.Visible)
-			{
-				CalculateLambda();
-				CalculateAlpha();
-
-				LambdaLabel.Visibility = Visibility.Visible;
-				Lambda.Visibility = Visibility.Visible;
-			}
+			CalculateLambda();
+			CalculateAlpha();
 		}
 
 		#endregion
@@ -160,7 +146,7 @@ namespace CuckooFlights
 
 			if (e.Text == "." || e.Text == ",")
 			{
-				if (!((TextBox)sender).Text.Contains(".") && !((TextBox)sender).Text.Contains(","))
+				if (!((TextBox) sender).Text.Contains(".") && !((TextBox) sender).Text.Contains(","))
 				{
 					approvedDecimalPoint = true;
 				}
@@ -232,13 +218,13 @@ namespace CuckooFlights
 			LabelUpperY.Content = _function.BoundUpper;
 			LabelLowerY.Content = _function.BoundLower;
 			double left = FunctionImage.Margin.Left + Canvas.Margin.Left - LabelWidth;
-			LabelUpperY.Margin = new Thickness { Left = left };
-			LabelLowerY.Margin = new Thickness { Left = left, Bottom = LabelLowerY.Margin.Bottom };
+			LabelUpperY.Margin = new Thickness {Left = left};
+			LabelLowerY.Margin = new Thickness {Left = left, Bottom = LabelLowerY.Margin.Bottom};
 
 			LabelUpperX.Content = _function.BoundUpper;
 			LabelLowerX.Content = _function.BoundLower;
-			LabelLowerX.Margin = new Thickness { Left = left + LabelWidth, Bottom = LabelLowerX.Margin.Bottom };
-			LabelUpperX.Margin = new Thickness { Left = left + width, Bottom = LabelUpperX.Margin.Bottom };
+			LabelLowerX.Margin = new Thickness {Left = left + LabelWidth, Bottom = LabelLowerX.Margin.Bottom};
+			LabelUpperX.Margin = new Thickness {Left = left + width, Bottom = LabelUpperX.Margin.Bottom};
 
 			CalculateLambda();
 			CalculateAlpha();
@@ -249,7 +235,7 @@ namespace CuckooFlights
 
 		private static Color GetColor(Function function, double max, double min, double x, double y)
 		{
-			double value = function.Expression(new List<double> { x, y });
+			double value = function.Expression(new List<double> {x, y});
 
 			double dist = Math.Abs(max - min);
 			double colorDist = dist / 4;
@@ -264,7 +250,7 @@ namespace CuckooFlights
 			{
 				double up = value - rg;
 				double scale = up / colorDist;
-				return new Color { A = byte.MaxValue, R = 255, G = Convert.ToByte((1 - scale) * 255), B = 0 };
+				return new Color {A = byte.MaxValue, R = 255, G = Convert.ToByte((1 - scale) * 255), B = 0};
 			}
 
 			// R: 0 to 255
@@ -272,7 +258,7 @@ namespace CuckooFlights
 			{
 				double up = value - g;
 				double scale = up / colorDist;
-				return new Color { A = byte.MaxValue, R = Convert.ToByte(scale * 255), G = 255, B = 0 };
+				return new Color {A = byte.MaxValue, R = Convert.ToByte(scale * 255), G = 255, B = 0};
 			}
 
 			// B: 255 to 0
@@ -280,7 +266,7 @@ namespace CuckooFlights
 			{
 				double up = value - gb;
 				double scale = up / colorDist;
-				return new Color { A = byte.MaxValue, R = 0, G = 255, B = Convert.ToByte((1 - scale) * 255) };
+				return new Color {A = byte.MaxValue, R = 0, G = 255, B = Convert.ToByte((1 - scale) * 255)};
 			}
 
 			// G: 0 to 255
@@ -288,7 +274,7 @@ namespace CuckooFlights
 			{
 				double up = value - b;
 				double scale = up / colorDist;
-				return new Color { A = byte.MaxValue, R = 0, G = Convert.ToByte(scale * 255), B = 255 };
+				return new Color {A = byte.MaxValue, R = 0, G = Convert.ToByte(scale * 255), B = 255};
 			}
 
 			return Colors.White;
@@ -376,7 +362,7 @@ namespace CuckooFlights
 
 		private static Tuple<double, double> GetFunctionMinMax(Function function, int width, int height)
 		{
-			double min = function.Expression(new List<double> { function.BoundLower, function.BoundLower });
+			double min = function.Expression(new List<double> {function.BoundLower, function.BoundLower});
 			double max = min;
 
 			double stepWidth = Math.Abs(function.BoundUpper - function.BoundLower) / (width - 1);
@@ -385,7 +371,7 @@ namespace CuckooFlights
 			{
 				for (double y = function.BoundLower; y <= function.BoundUpper; y += stepHeight)
 				{
-					double value = function.Expression(new List<double> { x, y });
+					double value = function.Expression(new List<double> {x, y});
 					if (value < min)
 					{
 						min = value;
@@ -403,6 +389,11 @@ namespace CuckooFlights
 
 		private double CalculateAlpha()
 		{
+			if (_function == null)
+			{
+				return double.NaN;
+			}
+
 			if (ManualRb.IsChecked == true)
 			{
 				return double.Parse(Alpha.Text.Replace('.', ','));
@@ -411,13 +402,13 @@ namespace CuckooFlights
 			double alpha;
 			if (MantegnaRb.IsChecked == true)
 			{
-				// dist = 100+ will be 1.85
-				// dist = 0 will be 1.99
-				alpha = Math.Max(1.99 - .14 * (Math.Abs(_function.BoundUpper - _function.BoundLower) / 200), 1.85);
+				// dist = 100 will be 1
+				// dist = 0 will be 0
+				alpha = Math.Abs(_function.BoundUpper - _function.BoundLower) / 200;
 				Alpha.Text = alpha.ToString("0.00");
 				return alpha;
 			}
-			
+
 			// dist = 100+ will be 1
 			// dist = 0 will be 0.1
 			alpha = Math.Min(.1 + .9 * (Math.Abs(_function.BoundUpper - _function.BoundLower) / 200), 1);
@@ -427,14 +418,29 @@ namespace CuckooFlights
 
 		private double CalculateLambda()
 		{
+			if (_function == null)
+			{
+				return double.NaN;
+			}
+
 			if (ManualRb.IsChecked == true)
 			{
 				return double.Parse(Lambda.Text.Replace('.', ','));
 			}
 
+			double lambda;
+			if (MantegnaRb.IsChecked == true)
+			{
+				// dist = 100+ will be 1.85
+				// dist = 0 will be 1.99
+				lambda = Math.Max(1.99 - .14 * (Math.Abs(_function.BoundUpper - _function.BoundLower) / 200), 1.85);
+				Lambda.Text = lambda.ToString("0.00");
+				return lambda;
+			}
+
 			// dist = 100+ will be 1.5
 			// dist = 0 will be 3
-			double lambda = Math.Max(3 - 1.5 * (Math.Abs(_function.BoundUpper - _function.BoundLower) / 100), 1.5);
+			lambda = Math.Max(3 - 1.5 * (Math.Abs(_function.BoundUpper - _function.BoundLower) / 200), 1.5);
 			Lambda.Text = lambda.ToString("0.00");
 			return lambda;
 		}

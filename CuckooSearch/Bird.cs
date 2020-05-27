@@ -6,7 +6,9 @@ namespace CuckooSearch
 {
 	public class Bird
 	{
-		public Bird(){}
+		public Bird()
+		{
+		}
 
 		public Bird(Bird bird)
 		{
@@ -14,7 +16,7 @@ namespace CuckooSearch
 			X.AddRange(bird.X);
 			Fx = bird.Fx;
 		}
-		
+
 		public List<double> X { get; } = new List<double>();
 
 		public double Fx { get; set; } = double.MaxValue;
@@ -27,7 +29,7 @@ namespace CuckooSearch
 				double rnd = function.BoundLower + random.NextDouble() * (function.BoundUpper - function.BoundLower);
 				X.Add(rnd);
 			}
-		
+
 			Fx = function.Expression(X);
 		}
 

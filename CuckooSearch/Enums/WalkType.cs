@@ -1,8 +1,8 @@
 ﻿namespace CuckooSearch.Enums
 {
-    public enum WalkType
-    {
-        Levy,
-        Mantegna
-    }
+	public enum WalkType
+	{
+		Levy,
+		Mantegna
+	}
 }
