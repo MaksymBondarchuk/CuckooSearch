@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using CuckooSearch.Enums;
 
 namespace CuckooSearch
 {
@@ -75,7 +76,7 @@ namespace CuckooSearch
 
 			var algorithm = new Algorithm();
 
-			algorithm.Run(hostsNumber: 50, cuckoosNumber: 5, function: sphere);
+			algorithm.Run(hostsNumber: 50, cuckoosNumber: 5, function: sphere, walkType: WalkType.Levy);
 		}
 	}
 }

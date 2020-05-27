@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using CuckooSearch.Enums;
 
 namespace CuckooSearch
 {
@@ -19,12 +20,13 @@ namespace CuckooSearch
         private Bird _best;
         private double _lambda;
         private double _alpha;
+        private WalkType _walkType;
 
         #endregion
 
         #region Initialization
 
-        public void Initialize(int hostsNumber, int cuckoosNumber, Function function, double alpha, double lambda)
+        public void Initialize(int hostsNumber, int cuckoosNumber, Function function, WalkType walkType, double alpha, double lambda)
         {
             _function = function;
 
@@ -49,15 +51,16 @@ namespace CuckooSearch
             _best = new Bird();
             _lambda = lambda;
             _alpha = alpha;
+            _walkType = walkType;
         }
 
         #endregion
 
-        public void Run(int hostsNumber, int cuckoosNumber, Function function)
+        public void Run(int hostsNumber, int cuckoosNumber, Function function, WalkType walkType)
         {
             var stopwatch = Stopwatch.StartNew();
 
-            Initialize(hostsNumber, cuckoosNumber, function, 1, 1.5);
+            Initialize(hostsNumber, cuckoosNumber, function, walkType, 1, 1.5);
 
             // double vMax = Math.Abs(Function.BoundUpper - Function.BoundLower) * .1;
             // const double wLow = 0.1;
@@ -97,7 +100,12 @@ namespace CuckooSearch
 
                 for (var d = 0; d < _function.Dimensions; d++)
                 {
-                    double walk = LevyRandom(lambda, alpha);
+                    double walk = _walkType switch
+                    {
+                        WalkType.Levy => LevyRandom(lambda, alpha),
+                        WalkType.Mantegna => MantegnaRandom(alpha),
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
                     cuckoo.X[d] += walk;
 
                     // Ensure boundaries
@@ -132,6 +140,7 @@ namespace CuckooSearch
                 }
 
                 Population.Hosts = Population.Hosts.OrderByDescending(h => h.Fx).ToList();
+                Population.Cuckoos = Population.Cuckoos.OrderByDescending(h => h.Fx).ToList();
 
                 #endregion
 
@@ -165,16 +174,16 @@ namespace CuckooSearch
         }
 
         // ReSharper disable once UnusedMember.Local
-        private double MantegnaRandom(double lambda)
+        private double MantegnaRandom(double alpha)
         {
-            double sigmaX = SpecialFunction.lgamma(lambda + 1) * Math.Sin(Math.PI * lambda * .5);
-            double divider = SpecialFunction.lgamma(lambda * .5) * lambda * Math.Pow(2.0, (lambda - 1) * .5);
+            double sigmaX = SpecialFunction.lgamma(alpha + 1) * Math.Sin(Math.PI * alpha * .5);
+            double divider = SpecialFunction.lgamma((alpha + 1) * .5) * alpha * Math.Pow(2.0, (alpha - 1) * .5);
             sigmaX /= divider;
-            double lambda1 = 1.0 / lambda;
-            sigmaX = Math.Pow(Math.Abs(sigmaX), lambda1);
+            double alpha1 = 1.0 / alpha;
+            sigmaX = Math.Pow(Math.Abs(sigmaX), alpha1);
             double x = GaussianRandom(0, sigmaX);
             double y = Math.Abs(GaussianRandom(0, 1.0));
-            return x / Math.Pow(y, lambda1);
+            return x / Math.Pow(y, alpha1);
         }
     }
 }

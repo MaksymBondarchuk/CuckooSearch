@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CuckooFlights"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" WindowState="Maximized" WindowStartupLocation="CenterScreen" SizeChanged="Window_SizeChanged" MouseDown="Window_MouseDown">
+        Title="MainWindow" Height="571" Width="990" WindowState="Maximized" WindowStartupLocation="CenterScreen" SizeChanged="Window_SizeChanged" MouseDown="Window_MouseDown">
     <Grid x:Name="MainGrid">
         <Grid HorizontalAlignment="Left" Width="122">
             <RadioButton x:Name="SphereRb" Content="Sphere" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Checked="SphereRb_Checked"/>
@@ -14,16 +14,27 @@
             <RadioButton x:Name="RosenbrockRb" Content="Rosenbrock" HorizontalAlignment="Left" Margin="10,90,0,0" VerticalAlignment="Top" Checked="RosenbrockRb_Checked"/>
             <RadioButton x:Name="AckleyRb" Content="Ackley" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Checked="AckleyRb_Checked"/>
             <Button x:Name="RunButton" Content="Run" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Click="RunButton_Click" IsEnabled="False"/>
-            <Grid x:Name="ParamsGrid" Margin="0,184,0,0" Height="177" VerticalAlignment="Top" IsEnabled="False">
-                <TextBox x:Name="Lambda" ToolTipService.ShowOnDisabled="True" HorizontalAlignment="Center" Margin="0,146,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="102" PreviewTextInput="Lambda_PreviewTextInput" IsEnabled="False" ToolTip="1.5-3: the smaller the value, the wider the step"/>
+            <Grid x:Name="ParamsGrid" Margin="0,318,0,0" Height="177" VerticalAlignment="Top" IsEnabled="False">
+                <TextBox x:Name="Lambda" ToolTipService.ShowOnDisabled="True" HorizontalAlignment="Center" Margin="0,146,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="102" PreviewTextInput="PreviewTextInput_EnsureDecimal" IsEnabled="False" ToolTip="1.5-3: the smaller the value, the wider the step"/>
                 <Label x:Name="LambdaLabel" ToolTipService.ShowOnDisabled="True" Content="Lambda" HorizontalAlignment="Left" Margin="10,120,0,0" VerticalAlignment="Top" IsEnabled="False" ToolTip="1.5-3: the smaller the value, the wider the step"/>
-                <TextBox x:Name="Alpha" ToolTipService.ShowOnDisabled="True" HorizontalAlignment="Center" Margin="0,102,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="102" PreviewTextInput="Lambda_PreviewTextInput" IsEnabled="False" ToolTip="0.1-1: the smaller the value, the smaller the step"/>
+                <TextBox x:Name="Alpha" ToolTipService.ShowOnDisabled="True" HorizontalAlignment="Center" Margin="0,102,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="102" PreviewTextInput="PreviewTextInput_EnsureDecimal" IsEnabled="False" ToolTip="0.1-1: the smaller the value, the smaller the step"/>
                 <Label x:Name="AlphaLabel" ToolTipService.ShowOnDisabled="True" Content="Alpha" HorizontalAlignment="Left" Margin="10,76,0,0" VerticalAlignment="Top" IsEnabled="False" ToolTip="0.1-1: the smaller the value, the smaller the step"/>
                 <RadioButton x:Name="ManualRb" Content="Manual" HorizontalAlignment="Left" Margin="10,56,0,0" VerticalAlignment="Top" Checked="ManualRb_Checked"/>
-                <RadioButton x:Name="AutomaticRb" Content="Automatic" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Checked="AutomaticRb_Checked" IsChecked="True" IsEnabled="False"/>
+                <RadioButton x:Name="AutomaticRb" Content="Automatic" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Checked="AutomaticRb_Checked" IsChecked="True"/>
                 <Label Content="Params values" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
             </Grid>
             <Button x:Name="ResetButton" Content="Reset" HorizontalAlignment="Center" Margin="0,0,0,10" VerticalAlignment="Bottom" Click="ResetButton_Click" IsEnabled="False"/>
+            <Grid x:Name="WalkTypeGrid" Margin="0,234,0,0" Height="79" VerticalAlignment="Top" IsEnabled="False">
+                <RadioButton x:Name="LevyRb" Content="Levy" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Checked="LevyRb_Checked" IsChecked="True"/>
+                <RadioButton x:Name="MantegnaRb" Content="Mantegna" HorizontalAlignment="Left" Margin="10,56,0,0" VerticalAlignment="Top" Checked="MantegnaRb_Checked"/>
+                <Label Content="Walk type" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+            </Grid>
+            <Grid x:Name="WalkTypeGrid_Copy" Margin="0,120,0,0" Height="109" VerticalAlignment="Top">
+                <TextBox x:Name="Cuckoos" ToolTipService.ShowOnDisabled="True" HorizontalAlignment="Center" Margin="0,84,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="102" PreviewTextInput="PreviewTextInput_EnsureInt" ToolTip="1.5-3: the smaller the value, the wider the step" Text="10"/>
+                <Label ToolTipService.ShowOnDisabled="True" Content="Cuckoos" HorizontalAlignment="Left" Margin="10,58,0,0" VerticalAlignment="Top" ToolTip="1.5-3: the smaller the value, the wider the step"/>
+                <TextBox x:Name="Nests" ToolTipService.ShowOnDisabled="True" HorizontalAlignment="Center" Margin="0,35,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="102" ToolTip="0.1-1: the smaller the value, the smaller the step" Text="15" PreviewTextInput="PreviewTextInput_EnsureInt"/>
+                <Label ToolTipService.ShowOnDisabled="True" Content="Nests" HorizontalAlignment="Left" Margin="10,9,0,0" VerticalAlignment="Top" ToolTip="0.1-1: the smaller the value, the smaller the step"/>
+            </Grid>
         </Grid>
         <Canvas x:Name="Canvas" Margin="165,0,0,21" Grid.ColumnSpan="2">
             <Image x:Name="FunctionImage" Stretch="None"/>

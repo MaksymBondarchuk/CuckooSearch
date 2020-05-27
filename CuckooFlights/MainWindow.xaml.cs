@@ -10,6 +10,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using CuckooSearch;
+using CuckooSearch.Enums;
+using CuckooSearch.Factories;
 
 namespace CuckooFlights
 {
@@ -43,82 +45,31 @@ namespace CuckooFlights
 
 		private void SphereRb_Checked(object sender, RoutedEventArgs e)
 		{
-			_function = new Function
-			{
-				Expression = x => { return x.Sum(t => t * t); },
-				BoundLower = -100,
-				BoundUpper = 100,
-				Dimensions = 2
-			};
+			_function = FunctionsFactory.Sphere;
 			DrawFunction();
 		}
 
 		private void AckleyRb_Checked(object sender, RoutedEventArgs e)
 		{
-			_function = new Function
-			{
-				Expression = x =>
-				{
-					double _1NaD = 1.0 / x.Count;
-					return -20 * Math.Exp(-0.2 * Math.Sqrt(_1NaD * x.Sum(t => t * t))) -
-						Math.Exp(_1NaD * x.Sum(t => Math.Cos(2 * Math.PI * t))) + 20 + Math.E;
-				},
-				BoundLower = -32.768,
-				BoundUpper = 32.768,
-				Dimensions = 2
-			};
+			_function = FunctionsFactory.Ackley;
 			DrawFunction();
 		}
 
 		private void GriewankRb_Checked(object sender, RoutedEventArgs e)
 		{
-			_function = new Function
-			{
-				Expression = x =>
-				{
-					var mul = 1.0;
-					for (var i = 0; i < x.Count; i++)
-						mul *= Math.Cos(x[i] / Math.Sqrt(i + 1));
-					return x.Sum(t => t * t / 4000) - mul + 1;
-				},
-				BoundLower = -100,
-				BoundUpper = 100,
-				Dimensions = 2
-			};
+			_function = FunctionsFactory.Griewank;
 			DrawFunction();
 		}
 
 		private void RastriginRb_Checked(object sender, RoutedEventArgs e)
 		{
-			_function = new Function
-			{
-				Expression = x => { return 10 * x.Count + x.Sum(t => t * t - 10 * Math.Cos(2 * Math.PI * t)); },
-				BoundLower = -5,
-				BoundUpper = 5,
-				Dimensions = 2,
-				IterationsNumber = 150000
-			};
+			_function = FunctionsFactory.Rastrigin;
 			DrawFunction();
 		}
 
 		private void RosenbrockRb_Checked(object sender, RoutedEventArgs e)
 		{
-			_function = new Function
-			{
-				Expression = x =>
-				{
-					var res = .0;
-					for (var i = 0; i < x.Count - 1; i++)
-					{
-						res += 100 * Math.Pow(x[i + 1] - x[i] * x[i], 2) + (x[i] - 1) * (x[i] - 1);
-					}
-
-					return res;
-				},
-				BoundLower = -2.048,
-				BoundUpper = 2.048,
-				Dimensions = 2
-			};
+			_function = FunctionsFactory.Rosenbrock;
 			DrawFunction();
 		}
 
@@ -136,6 +87,32 @@ namespace CuckooFlights
 			Alpha.IsEnabled = false;
 			LambdaLabel.IsEnabled = false;
 			Lambda.IsEnabled = false;
+		}
+
+		private void MantegnaRb_Checked(object sender, RoutedEventArgs e)
+		{
+			// To skip event on form load
+			if (LambdaLabel.Visibility != Visibility.Hidden)
+			{
+				CalculateLambda();
+				CalculateAlpha();
+
+				LambdaLabel.Visibility = Visibility.Hidden;
+				Lambda.Visibility = Visibility.Hidden;
+			}
+		}
+
+		private void LevyRb_Checked(object sender, RoutedEventArgs e)
+		{
+			// To skip event on form load
+			if (LambdaLabel.Visibility != Visibility.Visible)
+			{
+				CalculateLambda();
+				CalculateAlpha();
+
+				LambdaLabel.Visibility = Visibility.Visible;
+				Lambda.Visibility = Visibility.Visible;
+			}
 		}
 
 		#endregion
@@ -177,7 +154,7 @@ namespace CuckooFlights
 			Keyboard.ClearFocus();
 		}
 
-		private void Lambda_PreviewTextInput(object sender, TextCompositionEventArgs e)
+		private void PreviewTextInput_EnsureDecimal(object sender, TextCompositionEventArgs e)
 		{
 			var approvedDecimalPoint = false;
 
@@ -193,6 +170,11 @@ namespace CuckooFlights
 			{
 				e.Handled = true;
 			}
+		}
+
+		private void PreviewTextInput_EnsureInt(object sender, TextCompositionEventArgs e)
+		{
+			e.Handled = !int.TryParse(e.Text, out _);
 		}
 
 		#endregion
@@ -262,6 +244,7 @@ namespace CuckooFlights
 			CalculateAlpha();
 			RunButton.IsEnabled = true;
 			ParamsGrid.IsEnabled = true;
+			WalkTypeGrid.IsEnabled = true;
 		}
 
 		private static Color GetColor(Function function, double max, double min, double x, double y)
@@ -421,28 +404,36 @@ namespace CuckooFlights
 		private double CalculateAlpha()
 		{
 			if (ManualRb.IsChecked == true)
-			//if (_lambdaChangedManually)
 			{
 				return double.Parse(Alpha.Text.Replace('.', ','));
 			}
 
-			// dist = 100+ will be 1.5
-			// dist = 0 will be 3
-			double lambda = Math.Min(.1 + .9 * (Math.Abs(_function.BoundUpper - _function.BoundLower) / 100), 1);
-			Alpha.Text = lambda.ToString("0.00");
-			return lambda;
+			double alpha;
+			if (MantegnaRb.IsChecked == true)
+			{
+				// dist = 100+ will be 1.85
+				// dist = 0 will be 1.99
+				alpha = Math.Max(1.99 - .14 * (Math.Abs(_function.BoundUpper - _function.BoundLower) / 200), 1.85);
+				Alpha.Text = alpha.ToString("0.00");
+				return alpha;
+			}
+			
+			// dist = 100+ will be 1
+			// dist = 0 will be 0.1
+			alpha = Math.Min(.1 + .9 * (Math.Abs(_function.BoundUpper - _function.BoundLower) / 200), 1);
+			Alpha.Text = alpha.ToString("0.00");
+			return alpha;
 		}
 
 		private double CalculateLambda()
 		{
 			if (ManualRb.IsChecked == true)
-			//if (_lambdaChangedManually)
 			{
 				return double.Parse(Lambda.Text.Replace('.', ','));
 			}
 
-			// dist = 100+ will be 1
-			// dist = 0 will be 0.1
+			// dist = 100+ will be 1.5
+			// dist = 0 will be 3
 			double lambda = Math.Max(3 - 1.5 * (Math.Abs(_function.BoundUpper - _function.BoundLower) / 100), 1.5);
 			Lambda.Text = lambda.ToString("0.00");
 			return lambda;
@@ -455,7 +446,10 @@ namespace CuckooFlights
 		private async Task RunAlgorithm(CancellationToken cancellationToken)
 		{
 			var algorithm = new Algorithm();
-			algorithm.Initialize(NestsNumber, 1, _function, CalculateAlpha(), CalculateLambda());
+			int nests = !string.IsNullOrWhiteSpace(Nests.Text) ? int.Parse(Nests.Text) : 15;
+			int cuckoos = !string.IsNullOrWhiteSpace(Cuckoos.Text) ? int.Parse(Cuckoos.Text) : 10;
+			WalkType walkType = LevyRb.IsChecked == true ? WalkType.Levy : WalkType.Mantegna;
+			algorithm.Initialize(nests, cuckoos, _function, walkType, CalculateAlpha(), CalculateLambda());
 
 			for (var i = 0; i < NestsNumber; i++)
 			{
@@ -474,7 +468,8 @@ namespace CuckooFlights
 				Panel.SetZIndex(Canvas.Children[^1], 3);
 			}
 
-			Bird cuckoo = algorithm.Population.Cuckoos.First();
+			Bird cuckoo = algorithm.Population.Cuckoos.Last();
+			Bird lastCuckoo = cuckoo;
 			double prevX = cuckoo.X[0];
 			double prevY = cuckoo.X[1];
 			for (var iter = 1; iter <= _function.IterationsNumber; iter++)
@@ -485,19 +480,26 @@ namespace CuckooFlights
 				}
 
 				algorithm.Iteration(_function);
-
+				cuckoo = algorithm.Population.Cuckoos.Last();
 				double x = cuckoo.X[0];
 				double y = cuckoo.X[1];
-				Canvas.Children.Add(new Line
+				if (lastCuckoo == cuckoo)
 				{
-					X1 = TransformX(_function, prevX),
-					X2 = TransformX(_function, x),
-					Y1 = TransformY(_function, prevY),
-					Y2 = TransformY(_function, y),
-					StrokeThickness = 1,
-					Stroke = _brushBlack
-				});
-				Panel.SetZIndex(Canvas.Children[^1], 2);
+					Canvas.Children.Add(new Line
+					{
+						X1 = TransformX(_function, prevX),
+						X2 = TransformX(_function, x),
+						Y1 = TransformY(_function, prevY),
+						Y2 = TransformY(_function, y),
+						StrokeThickness = 1,
+						Stroke = _brushBlack
+					});
+					Panel.SetZIndex(Canvas.Children[^1], 2);
+				}
+				else
+				{
+					lastCuckoo = cuckoo;
+				}
 
 				for (var i = 0; i < NestsNumber; i++)
 				{
